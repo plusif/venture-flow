@@ -20,19 +20,17 @@ async function initApp() {
             dbOpen = false;
         }
         
-        // 2. Check if we need to load default data
+        // 2. Check for existing ventures
         if (dbOpen) {
             try {
                 const existingVentures = await window.db.getAll('venture');
                 if (!existingVentures || existingVentures.length === 0) {
-                    console.log('📦 No data found in database, loading default data...');
-                    await loadDefaultData();
-                    console.log('✅ Default data loaded into database');
+                    console.log('📦 No ventures found. User needs to create first venture.');
                 } else {
                     console.log(`📦 Found ${existingVentures.length} ventures in database`);
                 }
             } catch (e) {
-                console.warn('⚠️ Error checking/loading default data:', e);
+                console.warn('⚠️ Error checking ventures:', e);
             }
         }
         
@@ -46,23 +44,14 @@ async function initApp() {
             console.warn('⚠️ Could not load ventures from DB:', e);
         }
         
-        // 4. If no ventures, set default in memory
+        // 4. If no ventures, create EMPTY state (NO DEFAULT DATA)
         if (!AppState.ventures || AppState.ventures.length === 0) {
-            console.log('📦 No ventures found, creating default...');
-            AppState.ventures = [{
-                id: 1,
-                name: 'Interior Design Business',
-                description: 'Building and selling coffee tables, string art, and interior decor items',
-                originDate: '2026-06-15',
-                active: true,
-                createdAt: new Date().toISOString()
-            }];
-            
-            // Load default data into memory
-            AppState.events = DEFAULT_EVENTS.map(e => ({ ...e }));
-            AppState.inventory = DEFAULT_INVENTORY.map(i => ({ ...i }));
-            AppState.debts = DEFAULT_DEBTS.map(d => ({ ...d }));
-            console.log('📦 Default data loaded into memory');
+            console.log('📦 No ventures found. Starting with empty state.');
+            AppState.ventures = [];
+            AppState.events = [];
+            AppState.inventory = [];
+            AppState.debts = [];
+            // NO DEFAULT DATA - user must create a venture
         }
         
         // 5. Set Current Venture
@@ -123,12 +112,18 @@ async function initApp() {
         } else {
             console.warn('⚠️ Advisor not available');
         }
-        // 12. Update Advisor Badge (NEW)
+        
+        // 12. Update Advisor Badge
         updateAdvisorBadge();
         
         console.log('✅ Venture Flow initialized successfully!');
         console.log(`📊 ${AppState.events.length} events, ${AppState.inventory.length} products, ${AppState.debts.length} debts`);
         console.log(`🏢 ${AppState.ventures.length} ventures, active: ${AppState.currentVentureId}`);
+        
+        // If no ventures, show a helpful message
+        if (AppState.ventures.length === 0) {
+            showToast('🏢 Welcome! Create your first venture to get started.', 'info');
+        }
         
         setTimeout(() => {
             renderAll();
@@ -139,31 +134,17 @@ async function initApp() {
         console.error('❌ Failed to initialize:', error);
         showToast('Failed to load app. Please refresh.', 'error');
         
-        // Emergency fallback
-        console.log('🔄 Emergency fallback: Loading default data directly...');
-        AppState.ventures = [{
-            id: 1,
-            name: 'Interior Design Business',
-            description: 'Building and selling coffee tables, string art, and interior decor items',
-            originDate: '2026-06-15',
-            active: true,
-            createdAt: new Date().toISOString()
-        }];
-        AppState.events = DEFAULT_EVENTS.map(e => ({ ...e }));
-        AppState.inventory = DEFAULT_INVENTORY.map(i => ({ ...i }));
-        AppState.debts = DEFAULT_DEBTS.map(d => ({ ...d }));
-        AppState.currentVentureId = 1;
+        // Emergency fallback - create empty state
+        console.log('🔄 Emergency fallback: Creating empty state...');
+        AppState.ventures = [];
+        AppState.events = [];
+        AppState.inventory = [];
+        AppState.debts = [];
+        AppState.currentVentureId = null;
         AppState.initialized = true;
         renderAll();
         setupEventListeners();
-        
-        // Try to register advisor even in fallback
-        if (typeof Advisor !== 'undefined' && Advisor.register) {
-            Advisor.register();
-            updateAdvisorBadge();
-        }
-        
-        showToast('Loaded with fallback data', 'warning');
+        showToast('⚠️ No data found. Create a new venture to get started.', 'warning');
     }
 }
 
@@ -271,7 +252,7 @@ async function switchVenture(id) {
 }
 
 // ============================================
-// ADVISOR BADGE (NEW)
+// ADVISOR BADGE
 // ============================================
 
 function updateAdvisorBadge() {
