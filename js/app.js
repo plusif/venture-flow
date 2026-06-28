@@ -116,14 +116,13 @@ async function initApp() {
             startCountdownTimer();
         }
         
-        // 11. Register Advisor (NEW)
-        if (typeof Advisor !== 'undefined' && Advisor.register) {
-            Advisor.register();
-            console.log('🧠 Advisor registered successfully');
+        // 11. Initialize Advisor (with auto-refresh)
+        if (typeof Advisor !== 'undefined' && Advisor.init) {
+            Advisor.init();
+            console.log('🧠 Advisor initialized with auto-refresh');
         } else {
             console.warn('⚠️ Advisor not available');
         }
-        
         // 12. Update Advisor Badge (NEW)
         updateAdvisorBadge();
         
