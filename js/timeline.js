@@ -79,7 +79,8 @@ function renderTimeline() {
         const hasLateEntry = events.some(e => e.lateEntry === true);
         const isEmpty = events.length === 0;
         
-        html += `<div class="day-block ${isToday ? 'today' : ''} ${isEmpty ? 'empty-day' : ''}">`;
+        // Add a data attribute for easy targeting
+        html += `<div class="day-block ${isToday ? 'today' : ''} ${isEmpty ? 'empty-day' : ''}" data-date="${date}">`;
         html += `<div class="day-header">`;
         
         // Date with today indicator
@@ -94,17 +95,17 @@ function renderTimeline() {
         html += `</div>`;
         
         if (isEmpty) {
-            // Empty day - show a placeholder
+            // Empty day - show a placeholder with click-to-add functionality
             html += `
-                <div class="day-row empty-row">
+                <div class="day-row empty-row" onclick="openEventModal('${date}', true)">
                     <div class="day-col friction-col">
-                        <div class="empty-placeholder"></div>
+                        <div class="empty-placeholder">＋</div>
                     </div>
                     <div class="day-col timeline-col">
                         <div class="timeline-line"></div>
                     </div>
                     <div class="day-col support-col">
-                        <div class="empty-placeholder"></div>
+                        <div class="empty-placeholder">＋</div>
                     </div>
                 </div>
             `;

@@ -78,7 +78,7 @@
             <div id="ventures-list"></div>
         </section>
 
-        <!-- NEW: ADVISOR VIEW -->
+        <!-- ADVISOR VIEW -->
         <section id="view-advisor" class="view">
             <div id="advisor-container"></div>
         </section>
@@ -95,25 +95,69 @@
 
 <!-- ===== MODALS ===== -->
 
-<!-- Event Modal -->
+<!-- ============================================ -->
+<!-- EVENT MODAL - WITH SMART DATE HANDLING      -->
+<!-- ============================================ -->
 <div id="event-modal" class="modal">
     <div class="modal-overlay"></div>
     <div class="modal-content">
-        <div class="modal-header"><h2 id="event-modal-title">Add Event</h2><button class="modal-close" data-modal="event-modal">&times;</button></div>
+        <div class="modal-header">
+            <h2 id="event-modal-title">Add Event</h2>
+            <button class="modal-close" data-modal="event-modal">&times;</button>
+        </div>
         <form id="event-form">
             <input type="hidden" id="event-edit-id" value="">
-            <div class="form-group"><label for="event-date">Date</label><input type="date" id="event-date" required></div>
+            
+            <!-- Date Field with Smart Handling -->
+            <div class="form-group">
+                <label for="event-date">📅 Date</label>
+                <input type="date" id="event-date" required>
+                <small style="color:var(--gray-500);display:block;margin-top:4px;font-size:11px;">
+                    ⏳ <span id="date-help-text">Today's date is pre-filled. Select a past date for late entries.</span>
+                </small>
+            </div>
+            
             <div class="form-group">
                 <label>Event Type</label>
                 <div class="radio-group">
-                    <label class="radio-option friction active" data-type="friction"><input type="radio" name="eventType" value="friction" checked><span>Friction (−)</span></label>
-                    <label class="radio-option support" data-type="support"><input type="radio" name="eventType" value="support"><span>Support (+)</span></label>
+                    <label class="radio-option friction active" data-type="friction">
+                        <input type="radio" name="eventType" value="friction" checked>
+                        <span>Friction (−)</span>
+                    </label>
+                    <label class="radio-option support" data-type="support">
+                        <input type="radio" name="eventType" value="support">
+                        <span>Support (+)</span>
+                    </label>
                 </div>
             </div>
-            <div class="form-group"><label for="event-category">Category</label><select id="event-category" required></select></div>
-            <div class="form-group"><label for="event-amount">Amount (Ksh)</label><input type="number" id="event-amount" placeholder="0" step="1"><small>Leave blank if not financial</small></div>
-            <div class="form-group"><label for="event-description">Description</label><textarea id="event-description" rows="3" placeholder="What happened?" required></textarea></div>
-            <div class="form-group"><label><input type="checkbox" id="event-late-entry"> This is a late entry</label></div>
+            
+            <div class="form-group">
+                <label for="event-category">Category</label>
+                <select id="event-category" required></select>
+            </div>
+            
+            <div class="form-group">
+                <label for="event-amount">Amount (Ksh)</label>
+                <input type="number" id="event-amount" placeholder="0" step="1">
+                <small>Leave blank if not financial</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="event-description">Description</label>
+                <textarea id="event-description" rows="3" placeholder="What happened?" required></textarea>
+            </div>
+            
+            <!-- Late Entry Checkbox - Auto-managed -->
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="event-late-entry"> 
+                    📝 This is a late entry
+                </label>
+                <small style="color:var(--gray-500);display:block;margin-top:4px;font-size:11px;">
+                    ⚡ Auto-checked when you select a past date. Unchecked for today.
+                </small>
+            </div>
+            
             <button type="submit" class="submit-btn" id="event-submit-btn">Save Event</button>
         </form>
     </div>

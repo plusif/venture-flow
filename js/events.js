@@ -12,32 +12,41 @@ function openEventModal(date, isLate = false) {
     
     if (!modal) return;
     
+    const todayStr = today();
+    
     editId.value = '';
     title.textContent = isLate ? 'Add Late Entry' : 'Add Event';
     submitBtn.textContent = 'Save Event';
-    lateCheckbox.checked = isLate;
     
-    // Set date to today or provided date
-    const todayStr = today();
-    const selectedDate = date || todayStr;
-    
-    // If editing, allow the existing date
-    // For new events, default to today
-    dateInput.value = selectedDate;
-    
-    // Set max date to today (prevent future dates)
-    dateInput.max = todayStr;
+    // Set date: default to today, or use provided date (if valid)
+    let selectedDate = date || todayStr;
     
     // If the provided date is in the future, reset to today
     if (selectedDate > todayStr) {
-        dateInput.value = todayStr;
-        showToast('Cannot set events in the future. Date set to today.', 'warning');
+        selectedDate = todayStr;
+        showToast('⏳ Cannot record events in the future. Date set to today.', 'warning');
     }
     
+    // Set the date input
+    dateInput.value = selectedDate;
+    
+    // Set max date to today (prevents selecting future dates in picker)
+    dateInput.max = todayStr;
+    
+    // Set min date to origin (optional - prevents going before venture started)
+    if (AppState.currentVenture) {
+        dateInput.min = AppState.currentVenture.originDate;
+    }
+    
+    // If this is a late entry, check the checkbox
+    lateCheckbox.checked = isLate || (selectedDate < todayStr);
+    
+    // Reset other form fields
     document.getElementById('event-form').reset();
     document.getElementById('event-amount').value = '';
     document.getElementById('event-description').value = '';
     
+    // Reset radio buttons to friction by default
     const frictionRadio = document.querySelector('input[name="eventType"][value="friction"]');
     if (frictionRadio) frictionRadio.checked = true;
     document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('active'));
@@ -63,17 +72,30 @@ function openEditEvent(id) {
     const amountInput = document.getElementById('event-amount');
     const descInput = document.getElementById('event-description');
     const lateCheckbox = document.getElementById('event-late-entry');
+    const todayStr = today();
     
     editId.value = event.id;
     title.textContent = 'Edit Event';
     submitBtn.textContent = 'Update Event';
     
-    // Set max date to today (prevent changing to future)
-    dateInput.max = today();
-    dateInput.value = event.date;
+    // Set date - if it's a future date (shouldn't happen), reset to today
+    let eventDate = event.date;
+    if (eventDate > todayStr) {
+        eventDate = todayStr;
+        showToast('⚠️ This event was in the future. Date reset to today.', 'warning');
+    }
+    
+    dateInput.value = eventDate;
+    dateInput.max = todayStr;
+    
+    // Set min date to origin
+    if (AppState.currentVenture) {
+        dateInput.min = AppState.currentVenture.originDate;
+    }
+    
     amountInput.value = event.amount || '';
     descInput.value = event.description;
-    lateCheckbox.checked = event.lateEntry || false;
+    lateCheckbox.checked = event.lateEntry || (eventDate < todayStr);
     
     const typeInput = document.querySelector(`input[name="eventType"][value="${event.type}"]`);
     if (typeInput) {
@@ -106,8 +128,15 @@ async function saveEvent() {
         
         // === CRITICAL VALIDATION: No future dates ===
         if (date > todayStr) {
-            showToast('❌ Cannot record events in the future! Set date to today or earlier.', 'error');
+            showToast('❌ Cannot record events in the future! Date set to today.', 'error');
             document.getElementById('event-date').value = todayStr;
+            // Re-run save after resetting? No, just return and let user try again
+            return;
+        }
+        
+        // Check if date is before venture origin
+        if (AppState.currentVenture && date < AppState.currentVenture.originDate) {
+            showToast(`❌ Cannot record events before venture started (${formatDate(AppState.currentVenture.originDate)})`, 'error');
             return;
         }
         
@@ -118,7 +147,7 @@ async function saveEvent() {
             amount,
             description,
             ventureId: AppState.currentVentureId,
-            lateEntry
+            lateEntry: lateEntry || date < todayStr // Auto-mark as late if date is before today
         };
         
         if (editId) {
@@ -143,7 +172,9 @@ async function saveEvent() {
             }
             AppState.events.push(eventData);
             AppState.events.sort((a, b) => new Date(a.date) - new Date(b.date));
-            showToast(lateEntry ? 'Late entry added!' : 'Event saved!', 'success');
+            
+            const isLate = eventData.lateEntry;
+            showToast(isLate ? '📝 Late entry added!' : '✅ Event saved!', 'success');
         }
         
         document.getElementById('event-modal').classList.remove('visible');
@@ -177,3 +208,66 @@ async function deleteEvent(id) {
         showToast('Failed to delete event', 'error');
     }
 }
+
+// ============================================
+// NEW: DATE INPUT HANDLING
+// ============================================
+
+/**
+ * Handle date change on the event form
+ * Prevents future dates and shows appropriate messages
+ */
+function handleEventDateChange() {
+    const dateInput = document.getElementById('event-date');
+    const lateCheckbox = document.getElementById('event-late-entry');
+    const todayStr = today();
+    
+    if (!dateInput) return;
+    
+    const selectedDate = dateInput.value;
+    
+    // If user tries to select a future date
+    if (selectedDate > todayStr) {
+        showToast('⏳ Cannot record events in the future! Resetting to today.', 'warning');
+        dateInput.value = todayStr;
+        lateCheckbox.checked = false;
+        return;
+    }
+    
+    // If user selects a date before today, auto-check "late entry"
+    if (selectedDate < todayStr) {
+        lateCheckbox.checked = true;
+    } else {
+        // If date is today, uncheck late entry
+        lateCheckbox.checked = false;
+    }
+}
+
+/**
+ * Setup event form date handling
+ * Call this when the event modal opens
+ */
+function setupEventDateHandler() {
+    const dateInput = document.getElementById('event-date');
+    if (dateInput) {
+        // Remove any existing listener to avoid duplicates
+        dateInput.removeEventListener('change', handleEventDateChange);
+        dateInput.addEventListener('change', handleEventDateChange);
+    }
+}
+
+// Call this when the modal opens
+const originalOpenEventModal = openEventModal;
+openEventModal = function(date, isLate = false) {
+    originalOpenEventModal(date, isLate);
+    // Setup the date handler after modal is open
+    setTimeout(setupEventDateHandler, 100);
+};
+
+// Also handle when editing
+const originalOpenEditEvent = openEditEvent;
+openEditEvent = function(id) {
+    originalOpenEditEvent(id);
+    // Setup the date handler after modal is open
+    setTimeout(setupEventDateHandler, 100);
+};
