@@ -1,0 +1,30 @@
+/* ========================================
+   VENTURES VIEW
+   ======================================== */
+.venture-list-item {
+    background: var(--primary-dark);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.venture-list-item:hover { border-color: var(--support); }
+.venture-list-item .venture-info { flex: 1; }
+.venture-list-item .venture-name { font-weight: 600; font-size: 14px; }
+.venture-list-item .venture-meta {
+    font-size: 11px;
+    color: var(--gray-500);
+}
+.venture-list-item .venture-status {
+    font-size: 10px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.venture-status.active { background: #1a3a2a; color: var(--support); }
+.venture-status.inactive { background: #3a1a1a; color: var(--friction); }

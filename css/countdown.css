@@ -1,0 +1,37 @@
+/* ========================================
+   COUNTDOWN TIMER
+   ======================================== */
+#countdown-container {
+    background: var(--primary-dark);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border: 1px solid #2c3e50;
+    display: none;
+}
+#countdown-container.visible { display: block; }
+#countdown-container .countdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#countdown-container .countdown-title {
+    font-size: 11px;
+    color: var(--gray-400);
+}
+#countdown-container .countdown-toggle {
+    background: transparent;
+    color: var(--gray-500);
+    font-size: 14px;
+    padding: 0 4px;
+}
+#countdown-display {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    padding: 4px 0;
+    color: var(--warning);
+}
+#countdown-display.urgent { color: var(--friction); }

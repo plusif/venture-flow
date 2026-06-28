@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reality Flow - Icon Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #2c3e50;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { color: #2ecc71; margin-bottom: 8px; }
+        .subtitle { color: #adb5bd; margin-bottom: 24px; font-size: 14px; }
+        .icon-preview {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .icon-item {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #34495e;
+        }
+        .icon-item canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+        .icon-item .size {
+            font-size: 11px;
+            color: #868e96;
+            margin-top: 4px;
+        }
+        .download-btn {
+            background: #2ecc71;
+            color: #1a1a2e;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+        .download-btn:hover {
+            background: #27ae60;
+            transform: scale(1.02);
+        }
+        .progress {
+            margin-top: 16px;
+            color: #f39c12;
+            font-size: 14px;
+        }
+        .zip-info {
+            background: #1a1a2e;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: left;
+            font-size: 13px;
+            color: #adb5bd;
+            display: none;
+        }
+        .zip-info code {
+            color: #2ecc71;
+            background: #0f0f1a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .success {
+            color: #2ecc71;
+            font-weight: 600;
+            display: none;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Reality Flow Icons</h1>
+        <p class="subtitle">Generate all PWA icons at once</p>
+        
+        <div id="iconPreview" class="icon-preview"></div>
+        
+        <button id="generateBtn" class="download-btn">⬇ Generate & Download All Icons</button>
+        <div id="progress" class="progress"></div>
+        <div id="success" class="success">✅ All icons generated successfully!</div>
+        <div id="zipInfo" class="zip-info"></div>
+    </div>
+
+    <script>
+        const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+        
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const dpr = 2;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            ctx.scale(dpr, dpr);
+            
+            // Background - gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#2c3e50');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.18);
+            ctx.fill();
+            
+            // Border
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = size * 0.025;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.18);
+            ctx.stroke();
+            
+            // Timeline line (center)
+            ctx.beginPath();
+            ctx.moveTo(size * 0.5, size * 0.15);
+            ctx.lineTo(size * 0.5, size * 0.85);
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = size * 0.025;
+            ctx.stroke();
+            
+            // Origin dot
+            ctx.beginPath();
+            ctx.arc(size * 0.5, size * 0.2, size * 0.045, 0, Math.PI * 2);
+            ctx.fillStyle = '#2ecc71';
+            ctx.fill();
+            
+            // Left arrow (friction)
+            ctx.beginPath();
+            ctx.moveTo(size * 0.15, size * 0.4);
+            ctx.lineTo(size * 0.38, size * 0.4);
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = size * 0.025;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(size * 0.22, size * 0.35);
+            ctx.lineTo(size * 0.15, size * 0.4);
+            ctx.lineTo(size * 0.22, size * 0.45);
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = size * 0.025;
+            ctx.stroke();
+            
+            // Right arrow (support)
+            ctx.beginPath();
+            ctx.moveTo(size * 0.85, size * 0.6);
+            ctx.lineTo(size * 0.62, size * 0.6);
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = size * 0.025;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(size * 0.78, size * 0.55);
+            ctx.lineTo(size * 0.85, size * 0.6);
+            ctx.lineTo(size * 0.78, size * 0.65);
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = size * 0.025;
+            ctx.stroke();
+            
+            // Small indicators
+            // Friction dots (left)
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(size * 0.25 + i * size * 0.08, size * 0.5, size * 0.02, 0, Math.PI * 2);
+                ctx.fillStyle = i === 1 ? '#e74c3c' : '#e74c3c44';
+                ctx.fill();
+            }
+            
+            // Support dots (right)
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(size * 0.75 - i * size * 0.08, size * 0.5, size * 0.02, 0, Math.PI * 2);
+                ctx.fillStyle = i === 1 ? '#2ecc71' : '#2ecc7144';
+                ctx.fill();
+            }
+            
+            // "RF" text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.18}px system-ui, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RF', size * 0.5, size * 0.72);
+        }
+
+        // Polyfill roundRect if needed
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (r > w/2) r = w/2;
+                if (r > h/2) r = h/2;
+                this.moveTo(x + r, y);
+                this.lineTo(x + w - r, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r);
+                this.lineTo(x + w, y + h - r);
+                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                this.lineTo(x + r, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r);
+                this.lineTo(x, y + r);
+                this.quadraticCurveTo(x, y, x + r, y);
+            };
+        }
+
+        function previewIcons() {
+            const container = document.getElementById('iconPreview');
+            container.innerHTML = '';
+            SIZES.forEach(size => {
+                const div = document.createElement('div');
+                div.className = 'icon-item';
+                const canvas = document.createElement('canvas');
+                canvas.id = `preview-${size}`;
+                drawIcon(canvas, size);
+                const label = document.createElement('div');
+                label.className = 'size';
+                label.textContent = `${size}×${size}`;
+                div.appendChild(canvas);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
+        async function generateAndDownload() {
+            const btn = document.getElementById('generateBtn');
+            const progress = document.getElementById('progress');
+            const success = document.getElementById('success');
+            const zipInfo = document.getElementById('zipInfo');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            progress.textContent = 'Creating icons...';
+            
+            try {
+                // Create all icons
+                const icons = {};
+                for (let i = 0; i < SIZES.length; i++) {
+                    const size = SIZES[i];
+                    progress.textContent = `Generating ${size}×${size}... (${i + 1}/${SIZES.length})`;
+                    
+                    const canvas = document.createElement('canvas');
+                    drawIcon(canvas, size);
+                    
+                    // Export as PNG
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const blob = await fetch(dataUrl).then(r => r.blob());
+                    const base64 = await blobToBase64(blob);
+                    icons[`icon-${size}.png`] = base64;
+                }
+                
+                // Create a simple HTML manifest for manual download
+                const manifest = {
+                    name: 'Reality Flow',
+                    short_name: 'RealityFlow',
+                    description: 'Track your venture\'s interaction with reality',
+                    start_url: '/',
+                    display: 'standalone',
+                    orientation: 'portrait',
+                    background_color: '#1a1a2e',
+                    theme_color: '#1a1a2e',
+                    icons: SIZES.map(size => ({
+                        src: `icons/icon-${size}.png`,
+                        sizes: `${size}x${size}`,
+                        type: 'image/png',
+                        purpose: 'any maskable'
+                    }))
+                };
+                
+                // Generate download links for each icon
+                const container = document.getElementById('iconPreview');
+                container.innerHTML = '';
+                
+                Object.keys(icons).forEach(filename => {
+                    const div = document.createElement('div');
+                    div.className = 'icon-item';
+                    const img = document.createElement('img');
+                    img.src = icons[filename];
+                    img.style.width = '64px';
+                    img.style.height = '64px';
+                    img.style.borderRadius = '8px';
+                    const label = document.createElement('div');
+                    label.className = 'size';
+                    label.textContent = filename;
+                    div.appendChild(img);
+                    div.appendChild(label);
+                    container.appendChild(div);
+                });
+                
+                // Show download instructions
+                zipInfo.style.display = 'block';
+                zipInfo.innerHTML = `
+                    <strong>📥 Download Instructions:</strong><br><br>
+                    1. Right-click each icon above and select "Save Image As..."<br>
+                    2. Save all icons to a folder named <code>icons/</code><br>
+                    3. Copy this manifest.json:<br><br>
+                    <code style="display:block;white-space:pre-wrap;font-size:11px;background:#0f0f1a;padding:12px;border-radius:6px;overflow:auto;max-height:200px;">${JSON.stringify(manifest, null, 2)}</code>
+                    <br>
+                    4. Save the manifest as <code>manifest.json</code> in your root folder
+                `;
+                
+                success.style.display = 'block';
+                progress.textContent = '✅ All icons ready!';
+                btn.textContent = '⬇ Download All (Click each icon above)';
+                btn.disabled = false;
+                
+                // Also offer a zip download using JSZip if available
+                // For simplicity, we provide individual downloads
+                // Create download buttons for each icon
+                const downloadRow = document.createElement('div');
+                downloadRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px;';
+                Object.keys(icons).forEach(filename => {
+                    const a = document.createElement('a');
+                    a.href = icons[filename];
+                    a.download = filename;
+                    a.textContent = filename;
+                    a.style.cssText = 'background:#34495e;color:white;padding:6px 12px;border-radius:6px;font-size:12px;text-decoration:none;cursor:pointer;';
+                    downloadRow.appendChild(a);
+                });
+                container.parentNode.insertBefore(downloadRow, container.nextSibling);
+                
+                // Also offer manifest download
+                const manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+                const manifestUrl = URL.createObjectURL(manifestBlob);
+                const manifestLink = document.createElement('a');
+                manifestLink.href = manifestUrl;
+                manifestLink.download = 'manifest.json';
+                manifestLink.textContent = '⬇ Download manifest.json';
+                manifestLink.style.cssText = 'display:inline-block;background:#3498db;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;margin-top:12px;font-size:14px;';
+                document.querySelector('.container').appendChild(manifestLink);
+                
+            } catch (error) {
+                progress.textContent = '❌ Error: ' + error.message;
+                btn.textContent = '⬇ Try Again';
+                btn.disabled = false;
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // Initialize
+        previewIcons();
+        document.getElementById('generateBtn').addEventListener('click', generateAndDownload);
+    </script>
+</body>
+</html>

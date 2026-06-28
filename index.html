@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Venture Flow - Track your venture's interaction with reality">
+    <title>Ventures Flow</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/timeline.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/inventory.css">
+    <link rel="stylesheet" href="css/debts.css">
+    <link rel="stylesheet" href="css/reports.css">
+    <link rel="stylesheet" href="css/ventures.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div id="app">
+    
+    <!-- ===== HEADER ===== -->
+    <header id="app-header">
+        <div class="header-left">
+            <h1 id="app-title">Ventures Flow</h1>
+            <select id="venture-selector" class="venture-selector"></select>
+        </div>
+        <div class="header-right">
+            <span id="venture-date" class="venture-date">Since: --</span>
+            <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙</button>
+        </div>
+    </header>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav id="main-nav">
+        <button class="nav-btn" data-view="ventures"><span class="nav-icon">🏢</span><span class="nav-label">Ventures</span></button>
+        <button class="nav-btn" data-view="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></button>
+        <button class="nav-btn active" data-view="timeline"><span class="nav-icon">📅</span><span class="nav-label">Timeline</span></button>
+        <button class="nav-btn" data-view="inventory"><span class="nav-icon">📦</span><span class="nav-label">Inventory</span></button>
+        <button class="nav-btn" data-view="debts"><span class="nav-icon">💰</span><span class="nav-label">Debts</span></button>
+        <button class="nav-btn" data-view="reports"><span class="nav-icon">📋</span><span class="nav-label">Reports</span></button>
+        <button class="nav-btn" data-view="advisor"><span class="nav-icon">🧠</span><span class="nav-label">Advisor</span></button>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main id="main-content">
+        <section id="view-timeline" class="view active">
+            <div id="countdown-container"></div>
+            <div id="timeline-container"></div>
+            <div id="timeline-footer">
+                <button id="add-event-btn" class="add-btn">＋ Add Event for Today</button>
+                <button id="add-late-event-btn" class="add-btn secondary">📝 Add Late Entry</button>
+            </div>
+        </section>
+        
+        <section id="view-dashboard" class="view"><div id="dashboard-container"></div></section>
+        
+        <section id="view-inventory" class="view">
+            <button id="add-inventory-btn" class="add-btn" style="margin-bottom:10px;">＋ Add Product</button>
+            <div id="inventory-list"></div>
+        </section>
+        
+        <section id="view-debts" class="view">
+            <button id="add-debt-btn" class="add-btn" style="margin-bottom:10px;">＋ Add Debt</button>
+            <div id="debts-list"></div>
+        </section>
+        
+        <section id="view-reports" class="view"><div id="reports-container"></div></section>
+        
+        <section id="view-ventures" class="view">
+            <button id="add-venture-btn" class="add-btn" style="margin-bottom:10px;">＋ New Venture</button>
+            <div id="ventures-list"></div>
+        </section>
+
+        <!-- NEW: ADVISOR VIEW -->
+        <section id="view-advisor" class="view">
+            <div id="advisor-container"></div>
+        </section>
+    </main>
+
+    <!-- ===== STATUS BAR ===== -->
+    <footer id="status-bar">
+        <div class="status-item"><span class="status-label">Net Position</span><span id="net-position" class="status-value neutral">0</span></div>
+        <div class="status-item"><span class="status-label">Support (+)</span><span id="total-support" class="status-value positive">0</span></div>
+        <div class="status-item"><span class="status-label">Friction (−)</span><span id="total-friction" class="status-value negative">0</span></div>
+        <div class="status-item"><span class="status-label">Days</span><span id="total-days" class="status-value neutral">0</span></div>
+    </footer>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Event Modal -->
+<div id="event-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header"><h2 id="event-modal-title">Add Event</h2><button class="modal-close" data-modal="event-modal">&times;</button></div>
+        <form id="event-form">
+            <input type="hidden" id="event-edit-id" value="">
+            <div class="form-group"><label for="event-date">Date</label><input type="date" id="event-date" required></div>
+            <div class="form-group">
+                <label>Event Type</label>
+                <div class="radio-group">
+                    <label class="radio-option friction active" data-type="friction"><input type="radio" name="eventType" value="friction" checked><span>Friction (−)</span></label>
+                    <label class="radio-option support" data-type="support"><input type="radio" name="eventType" value="support"><span>Support (+)</span></label>
+                </div>
+            </div>
+            <div class="form-group"><label for="event-category">Category</label><select id="event-category" required></select></div>
+            <div class="form-group"><label for="event-amount">Amount (Ksh)</label><input type="number" id="event-amount" placeholder="0" step="1"><small>Leave blank if not financial</small></div>
+            <div class="form-group"><label for="event-description">Description</label><textarea id="event-description" rows="3" placeholder="What happened?" required></textarea></div>
+            <div class="form-group"><label><input type="checkbox" id="event-late-entry"> This is a late entry</label></div>
+            <button type="submit" class="submit-btn" id="event-submit-btn">Save Event</button>
+        </form>
+    </div>
+</div>
+
+<!-- Inventory Modal -->
+<div id="inventory-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header"><h2 id="inv-modal-title">Add Product</h2><button class="modal-close" data-modal="inventory-modal">&times;</button></div>
+        <form id="inventory-form">
+            <input type="hidden" id="inv-edit-id" value="">
+            <div class="form-group"><label for="inv-name">Product Name</label><input type="text" id="inv-name" placeholder="e.g. Coffee Table" required></div>
+            <div class="form-group"><label for="inv-cost">Cost to Produce (Ksh)</label><input type="number" id="inv-cost" placeholder="0" step="1" required></div>
+            <div class="form-group"><label for="inv-price">Selling Price (Ksh)</label><input type="number" id="inv-price" placeholder="0" step="1" required></div>
+            <div class="form-group"><label for="inv-status">Status</label><select id="inv-status"><option value="for_sale">For Sale</option><option value="in_production">In Production</option><option value="sold">Sold</option></select></div>
+            <button type="submit" class="submit-btn" id="inv-submit-btn">Add Product</button>
+        </form>
+    </div>
+</div>
+
+<!-- Debt Modal -->
+<div id="debt-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header"><h2 id="debt-modal-title">Add Debt</h2><button class="modal-close" data-modal="debt-modal">&times;</button></div>
+        <form id="debt-form">
+            <input type="hidden" id="debt-edit-id" value="">
+            <div class="form-group"><label for="debt-creditor">Creditor / Source</label><input type="text" id="debt-creditor" placeholder="e.g. Family, Friend, Bank" required></div>
+            <div class="form-group"><label for="debt-amount">Amount (Ksh)</label><input type="number" id="debt-amount" placeholder="0" step="1" required></div>
+            <div class="form-group"><label for="debt-date">Date Borrowed</label><input type="date" id="debt-date" required></div>
+            <button type="submit" class="submit-btn" id="debt-submit-btn">Add Debt</button>
+        </form>
+    </div>
+</div>
+
+<!-- Venture Modal -->
+<div id="venture-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header"><h2>New Venture</h2><button class="modal-close" data-modal="venture-modal">&times;</button></div>
+        <form id="venture-form">
+            <div class="form-group"><label for="venture-name">Venture Name</label><input type="text" id="venture-name" placeholder="e.g. Interior Design Business" required></div>
+            <div class="form-group"><label for="venture-origin">Origin Date</label><input type="date" id="venture-origin" required></div>
+            <div class="form-group"><label for="venture-description">Description</label><textarea id="venture-description" rows="2" placeholder="What is this venture about?"></textarea></div>
+            <button type="submit" class="submit-btn">Create Venture</button>
+        </form>
+    </div>
+</div>
+
+<!-- Countdown Modal -->
+<div id="countdown-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header"><h2>⏱ Countdown Timer</h2><button class="modal-close" data-modal="countdown-modal">&times;</button></div>
+        <form id="countdown-form">
+            <div class="form-group"><label for="countdown-target">Target Date & Time</label><input type="datetime-local" id="countdown-target" required></div>
+            <div class="form-group"><label for="countdown-label">Label</label><input type="text" id="countdown-label" placeholder="e.g. Product Launch"></div>
+            <button type="submit" class="submit-btn">Set Countdown</button>
+            <button type="button" class="submit-btn danger" id="countdown-clear-btn" style="margin-top:6px;">Clear Countdown</button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"><span id="toast-message"></span></div>
+
+<!-- ===== SCRIPTS ===== -->
+<!-- 1. Core utilities and database (no dependencies) -->
+<script src="js/utils.js"></script>
+<script src="js/database.js"></script>
+
+<!-- 2. State management (depends on nothing) -->
+<script src="js/state.js"></script>
+
+<!-- 3. Data definitions (depends on database) -->
+<script src="js/categories.js"></script>
+<script src="js/default-data.js"></script>
+
+<!-- 4. CRUD operations (depend on state, database, categories) -->
+<script src="js/events.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/debts.js"></script>
+
+<!-- 5. Renderers (depend on CRUD operations and state) -->
+<script src="js/timeline.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/reports.js"></script>
+
+<!-- 6. Specialized features (depend on state and database) -->
+<script src="js/ventures.js"></script>
+<script src="js/countdown.js"></script>
+
+<!-- 7. Export utilities (depend on state) -->
+<script src="js/exports.js"></script>
+
+<!-- 8. Modal placeholder -->
+<script src="js/modals.js"></script>
+
+<!-- 9. EMERGENT INTELLIGENCE ENGINE -->
+<!-- Pattern engine: detects patterns in data -->
+<script src="js/patterns.js"></script>
+<!-- Probability engine: calculates outcome probabilities -->
+<script src="js/probability.js"></script>
+<!-- Memory engine: compresses data into stateful memory -->
+<script src="js/memory.js"></script>
+<!-- Anomaly engine: flags unusual events -->
+<script src="js/anomalies.js"></script>
+<!-- Simulator engine: runs what-if scenarios -->
+<script src="js/simulator.js"></script>
+<!-- Advisor engine: synthesizes everything into advice -->
+<script src="js/advisor.js"></script>
+
+<!-- 10. MAIN APPLICATION (depends on everything above) -->
+<script src="js/app.js"></script>
+
+</body>
+</html>

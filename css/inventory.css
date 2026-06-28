@@ -1,0 +1,29 @@
+/* ========================================
+   INVENTORY VIEW
+   ======================================== */
+.inventory-item {
+    background: var(--primary-dark);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border: 1px solid #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.inventory-item .item-info { flex: 1; }
+.inventory-item .item-name { font-weight: 600; font-size: 13px; }
+.inventory-item .item-details {
+    font-size: 11px;
+    color: var(--gray-500);
+}
+.inventory-item .item-status {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.status-for-sale { background: #1a3a2a; color: var(--support); }
+.status-sold { background: #3a1a1a; color: var(--friction); }
+.status-production { background: #3a2a1a; color: var(--warning); }

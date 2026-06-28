@@ -1,0 +1,29 @@
+/* ========================================
+   DEBTS VIEW
+   ======================================== */
+.debt-item {
+    background: var(--primary-dark);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border: 1px solid #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.debt-item .debt-info { flex: 1; }
+.debt-item .debt-creditor { font-weight: 600; font-size: 13px; }
+.debt-item .debt-amount {
+    color: var(--friction);
+    font-weight: 700;
+    font-size: 13px;
+}
+.debt-item .debt-status {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.debt-status-unpaid { background: #3a1a1a; color: var(--friction); }
+.debt-status-paid { background: #1a3a2a; color: var(--support); }

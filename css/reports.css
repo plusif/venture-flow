@@ -1,0 +1,61 @@
+/* ========================================
+   REPORTS VIEW
+   ======================================== */
+.report-section {
+    background: var(--primary-dark);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid #2c3e50;
+}
+.report-section h3 {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+}
+
+.gap-bar {
+    display: flex;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 6px 0;
+}
+.gap-bar .gap-friction { background: var(--friction); height: 100%; }
+.gap-bar .gap-support { background: var(--support); height: 100%; }
+.gap-bar .gap-empty { background: var(--gray-600); height: 100%; opacity: 0.3; }
+
+.gap-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--gray-500);
+}
+
+/* ========================================
+   EXPORT BUTTONS
+   ======================================== */
+.export-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+.export-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    border: none;
+    transition: all 0.2s;
+    text-align: center;
+}
+.export-btn.json { background: #6c5ce7; }
+.export-btn.json:hover { background: #5a4bd1; }
+.export-btn.csv { background: #00b894; }
+.export-btn.csv:hover { background: #00a381; }
+.export-btn.excel { background: #0984e3; }
+.export-btn.excel:hover { background: #0773c5; }
