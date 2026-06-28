@@ -644,3 +644,160 @@ textarea { resize: vertical; min-height: 60px; }
     font-size: 14px;
     color: var(--gray-200);
 }
+
+
+/* ============================================
+   ADVISOR FILTER TABS
+   ============================================ */
+
+.advisor-filter-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 6px 0 10px 0;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--gray-700);
+    margin-bottom: 10px;
+}
+
+.advisor-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--gray-600);
+    background: transparent;
+    color: var(--gray-400);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.advisor-filter-btn:hover {
+    background: var(--gray-800);
+    border-color: var(--gray-400);
+    color: var(--gray-200);
+}
+
+.advisor-filter-btn.active {
+    background: var(--gray-700);
+    border-color: var(--gray-400);
+    color: #fff;
+}
+
+.advisor-filter-btn.urgent {
+    border-color: rgba(231, 76, 60, 0.3);
+    color: var(--friction);
+}
+
+.advisor-filter-btn.urgent:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: var(--friction);
+}
+
+.advisor-filter-btn.urgent.active {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: var(--friction);
+    color: var(--friction);
+}
+
+.advisor-filter-btn.important {
+    border-color: rgba(241, 196, 15, 0.3);
+    color: var(--warning);
+}
+
+.advisor-filter-btn.important:hover {
+    background: rgba(241, 196, 15, 0.1);
+    border-color: var(--warning);
+}
+
+.advisor-filter-btn.important.active {
+    background: rgba(241, 196, 15, 0.2);
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.advisor-filter-btn.opportunity {
+    border-color: rgba(46, 204, 113, 0.3);
+    color: var(--support);
+}
+
+.advisor-filter-btn.opportunity:hover {
+    background: rgba(46, 204, 113, 0.1);
+    border-color: var(--support);
+}
+
+.advisor-filter-btn.opportunity.active {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: var(--support);
+    color: var(--support);
+}
+
+.filter-count {
+    font-size: 10px;
+    background: var(--gray-700);
+    color: var(--gray-400);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+    min-width: 18px;
+    text-align: center;
+}
+
+.advisor-filter-btn.active .filter-count {
+    background: var(--gray-600);
+    color: #fff;
+}
+
+.advisor-filter-btn.urgent .filter-count.urgent-count {
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--friction);
+}
+
+.advisor-filter-btn.important .filter-count.important-count {
+    background: rgba(241, 196, 15, 0.2);
+    color: var(--warning);
+}
+
+.advisor-filter-btn.opportunity .filter-count.opportunity-count {
+    background: rgba(46, 204, 113, 0.2);
+    color: var(--support);
+}
+
+/* Active state with colored counts */
+.advisor-filter-btn.urgent.active .filter-count.urgent-count {
+    background: rgba(231, 76, 60, 0.3);
+    color: var(--friction);
+}
+
+.advisor-filter-btn.important.active .filter-count.important-count {
+    background: rgba(241, 196, 15, 0.3);
+    color: var(--warning);
+}
+
+.advisor-filter-btn.opportunity.active .filter-count.opportunity-count {
+    background: rgba(46, 204, 113, 0.3);
+    color: var(--support);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .advisor-filter-tabs {
+        gap: 4px;
+        padding: 4px 0 8px 0;
+    }
+    
+    .advisor-filter-btn {
+        font-size: 10px;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+    
+    .filter-count {
+        font-size: 8px;
+        padding: 1px 5px;
+        min-width: 14px;
+    }
+}

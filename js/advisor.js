@@ -1,7 +1,10 @@
 // ============================================
-// ADVISOR ENGINE - WITH AUTO-REFRESH & PROGRESSIVE INTELLIGENCE
+// ADVISOR ENGINE - WITH AUTO-REFRESH & INTERACTIVE FILTERS
 // Synthesizes all engines into actionable advice
 // ============================================
+
+// Track current filter state
+let advisorFilter = 'all'; // 'all', 'urgent', 'important', 'opportunity'
 
 const Advisor = {
     /**
@@ -30,7 +33,7 @@ const Advisor = {
         }
 
         // ============================================
-        // NEW: TIME-BASED RECOMMENDATIONS
+        // TIME-BASED RECOMMENDATIONS
         // These update automatically even without new events!
         // ============================================
 
@@ -297,6 +300,28 @@ const Advisor = {
     },
     
     /**
+     * Get filtered recommendations
+     * @param {string} filter - 'all', 'urgent', 'important', 'opportunity'
+     * @returns {Array} Filtered recommendations
+     */
+    getFilteredRecommendations(filter = 'all') {
+        const all = this.getRecommendations();
+        
+        if (filter === 'all') return all;
+        
+        const priorityMap = {
+            'urgent': '🔥 Urgent',
+            'important': '⚡ Important',
+            'opportunity': '💡 Opportunity'
+        };
+        
+        const targetPriority = priorityMap[filter];
+        if (!targetPriority) return all;
+        
+        return all.filter(r => r.priority === targetPriority);
+    },
+    
+    /**
      * Get summary of advisor status
      * @returns {Object} Status summary
      */
@@ -318,26 +343,32 @@ const Advisor = {
     },
     
     /**
-     * Render advisor HTML
+     * Render advisor HTML with filter tabs
      * @param {Array} recommendations - Optional recommendations array
+     * @param {string} filter - Current filter
      * @returns {string} HTML
      */
-    render(recommendations) {
-        if (!recommendations) recommendations = this.getRecommendations();
+    render(recommendations, filter = 'all') {
+        if (!recommendations) recommendations = this.getFilteredRecommendations(filter);
         
         if (recommendations.length === 0) {
+            const filterLabels = {
+                'all': 'No recommendations yet.',
+                'urgent': '✅ No urgent issues!',
+                'important': '✅ No important issues!',
+                'opportunity': '💡 No opportunities yet.'
+            };
             return `
                 <div class="advisor-empty">
                     <span class="advisor-icon">🧠</span>
-                    <p>No recommendations yet. Keep adding events to get smarter advice.</p>
+                    <p>${filterLabels[filter] || 'No recommendations yet.'}</p>
+                    <p style="font-size:11px;color:var(--gray-600);">Keep adding events to get smarter advice.</p>
                 </div>
             `;
         }
         
         let html = `<div class="advisor-list">`;
         recommendations.forEach(r => {
-            const priorityIcon = r.priority === '🔥 Urgent' ? '🔴' : 
-                               r.priority === '⚡ Important' ? '🟡' : '🟢';
             html += `
                 <div class="advisor-item priority-${r.priority.replace('🔥 ', '').replace('⚡ ', '').replace('💡 ', '').toLowerCase()}">
                     <div class="advisor-header">
@@ -368,7 +399,6 @@ const Advisor = {
         }
         
         // Set up auto-refresh every 5 minutes (300,000 ms)
-        // This ensures recommendations stay fresh even if the tab is open
         if (window.advisorRefreshInterval) {
             clearInterval(window.advisorRefreshInterval);
         }
@@ -403,7 +433,7 @@ function renderAdvisor() {
     if (!container) return;
     
     const status = Advisor.getStatus();
-    const recommendations = Advisor.getRecommendations();
+    const filteredRecommendations = Advisor.getFilteredRecommendations(advisorFilter);
     
     // Add last updated timestamp
     const now = new Date();
@@ -423,26 +453,57 @@ function renderAdvisor() {
         ? `<div class="advisor-alert">⚠️ ${status.urgent} urgent ${status.urgent === 1 ? 'issue' : 'issues'} need attention</div>` 
         : '';
     
+    // Build filter tabs with counts
+    const filterTabs = `
+        <div class="advisor-filter-tabs">
+            <button class="advisor-filter-btn ${advisorFilter === 'all' ? 'active' : ''}" 
+                    data-filter="all" 
+                    onclick="setAdvisorFilter('all')">
+                📋 All <span class="filter-count">${status.total}</span>
+            </button>
+            <button class="advisor-filter-btn ${advisorFilter === 'urgent' ? 'active' : ''} urgent" 
+                    data-filter="urgent" 
+                    onclick="setAdvisorFilter('urgent')">
+                🔥 Urgent <span class="filter-count urgent-count">${status.urgent}</span>
+            </button>
+            <button class="advisor-filter-btn ${advisorFilter === 'important' ? 'active' : ''} important" 
+                    data-filter="important" 
+                    onclick="setAdvisorFilter('important')">
+                ⚡ Important <span class="filter-count important-count">${status.important}</span>
+            </button>
+            <button class="advisor-filter-btn ${advisorFilter === 'opportunity' ? 'active' : ''} opportunity" 
+                    data-filter="opportunity" 
+                    onclick="setAdvisorFilter('opportunity')">
+                💡 Opportunity <span class="filter-count opportunity-count">${status.opportunities}</span>
+            </button>
+        </div>
+    `;
+    
     container.innerHTML = `
         <div class="advisor-header-bar">
             <h2>🧠 Intelligent Advisor</h2>
-            <div class="advisor-stats">
-                <span class="advisor-stat urgent">🔥 ${status.urgent}</span>
-                <span class="advisor-stat important">⚡ ${status.important}</span>
-                <span class="advisor-stat opportunity">💡 ${status.opportunities}</span>
-            </div>
         </div>
         <div style="font-size:10px;color:var(--gray-600);text-align:right;padding:4px 0;border-bottom:1px solid var(--gray-700);margin-bottom:8px;">
             📅 ${dateStr} · 🕐 ${timeStr} · Auto-refreshes every 5 minutes
         </div>
+        ${filterTabs}
         ${badgeHtml}
         <div class="advisor-content">
-            ${Advisor.render(recommendations)}
+            ${Advisor.render(filteredRecommendations, advisorFilter)}
         </div>
         <div style="font-size:9px;color:var(--gray-700);text-align:center;padding:8px 0;margin-top:8px;border-top:1px solid var(--gray-800);">
-            💡 Emergent Intelligence · ${recommendations.length} active recommendations · ${status.hasUrgent ? '⚠️ Urgent issues detected' : '✅ All clear'}
+            💡 Emergent Intelligence · ${status.total} total recommendations · ${status.hasUrgent ? '⚠️ Urgent issues detected' : '✅ All clear'}
         </div>
     `;
+}
+
+// ============================================
+// FILTER CONTROL FUNCTION
+// ============================================
+
+function setAdvisorFilter(filter) {
+    advisorFilter = filter;
+    renderAdvisor();
 }
 
 // ============================================
@@ -463,3 +524,5 @@ document.addEventListener('visibilitychange', function() {
 // Expose globally
 window.Advisor = Advisor;
 window.renderAdvisor = renderAdvisor;
+window.setAdvisorFilter = setAdvisorFilter;
+window.advisorFilter = 'all';
