@@ -18,6 +18,11 @@ function openEventModal(date, isLate = false) {
     title.textContent = isLate ? 'Add Late Entry' : 'Add Event';
     submitBtn.textContent = 'Save Event';
     
+    // Reset the form first
+    document.getElementById('event-form').reset();
+    document.getElementById('event-amount').value = '';
+    document.getElementById('event-description').value = '';
+    
     // Set date: default to today, or use provided date (if valid)
     let selectedDate = date || todayStr;
     
@@ -27,7 +32,7 @@ function openEventModal(date, isLate = false) {
         showToast('⏳ Cannot record events in the future. Date set to today.', 'warning');
     }
     
-    // Set the date input
+    // CRITICAL: Set the date input value
     dateInput.value = selectedDate;
     
     // Set max date to today (prevents selecting future dates in picker)
@@ -41,10 +46,12 @@ function openEventModal(date, isLate = false) {
     // If this is a late entry, check the checkbox
     lateCheckbox.checked = isLate || (selectedDate < todayStr);
     
-    // Reset other form fields
-    document.getElementById('event-form').reset();
-    document.getElementById('event-amount').value = '';
-    document.getElementById('event-description').value = '';
+    // Force the date input to show the value
+    // Some browsers need this to update the display
+    dateInput.dispatchEvent(new Event('change'));
+    
+    // Update help text
+    updateDateHelpText(selectedDate);
     
     // Reset radio buttons to friction by default
     const frictionRadio = document.querySelector('input[name="eventType"][value="friction"]');
@@ -55,6 +62,9 @@ function openEventModal(date, isLate = false) {
     updateCategoryOptions('friction');
     
     modal.classList.add('visible');
+    
+    // Setup the date handler after modal is open
+    setTimeout(setupEventDateHandler, 100);
 }
 
 function openEditEvent(id) {
@@ -85,6 +95,7 @@ function openEditEvent(id) {
         showToast('⚠️ This event was in the future. Date reset to today.', 'warning');
     }
     
+    // CRITICAL: Set the date input value
     dateInput.value = eventDate;
     dateInput.max = todayStr;
     
@@ -97,6 +108,12 @@ function openEditEvent(id) {
     descInput.value = event.description;
     lateCheckbox.checked = event.lateEntry || (eventDate < todayStr);
     
+    // Force the date input to show the value
+    dateInput.dispatchEvent(new Event('change'));
+    
+    // Update help text
+    updateDateHelpText(eventDate);
+    
     const typeInput = document.querySelector(`input[name="eventType"][value="${event.type}"]`);
     if (typeInput) {
         typeInput.checked = true;
@@ -108,6 +125,77 @@ function openEditEvent(id) {
     
     if (categorySelect) categorySelect.value = event.category;
     modal.classList.add('visible');
+    
+    // Setup the date handler after modal is open
+    setTimeout(setupEventDateHandler, 100);
+}
+
+/**
+ * Update the help text below the date field
+ */
+function updateDateHelpText(selectedDate) {
+    const helpText = document.getElementById('date-help-text');
+    if (!helpText) return;
+    
+    const todayStr = today();
+    
+    if (selectedDate === todayStr) {
+        helpText.textContent = '📅 Today\'s date is pre-filled. Select a past date for late entries.';
+        helpText.style.color = 'var(--gray-500)';
+    } else if (selectedDate < todayStr) {
+        helpText.textContent = `📝 You're adding a late entry for ${formatDate(selectedDate)}. The "Late Entry" checkbox is auto-checked.`;
+        helpText.style.color = 'var(--warning)';
+    } else {
+        helpText.textContent = '⏳ Future dates are not allowed. Please select today or a past date.';
+        helpText.style.color = 'var(--friction)';
+    }
+}
+
+/**
+ * Handle date change on the event form
+ * Prevents future dates and shows appropriate messages
+ */
+function handleEventDateChange() {
+    const dateInput = document.getElementById('event-date');
+    const lateCheckbox = document.getElementById('event-late-entry');
+    const todayStr = today();
+    
+    if (!dateInput) return;
+    
+    const selectedDate = dateInput.value;
+    
+    // If user tries to select a future date
+    if (selectedDate > todayStr) {
+        showToast('⏳ Cannot record events in the future! Resetting to today.', 'warning');
+        dateInput.value = todayStr;
+        lateCheckbox.checked = false;
+        updateDateHelpText(todayStr);
+        return;
+    }
+    
+    // If user selects a date before today, auto-check "late entry"
+    if (selectedDate < todayStr) {
+        lateCheckbox.checked = true;
+    } else {
+        // If date is today, uncheck late entry
+        lateCheckbox.checked = false;
+    }
+    
+    // Update help text
+    updateDateHelpText(selectedDate);
+}
+
+/**
+ * Setup event form date handling
+ * Call this when the event modal opens
+ */
+function setupEventDateHandler() {
+    const dateInput = document.getElementById('event-date');
+    if (dateInput) {
+        // Remove any existing listener to avoid duplicates
+        dateInput.removeEventListener('change', handleEventDateChange);
+        dateInput.addEventListener('change', handleEventDateChange);
+    }
 }
 
 async function saveEvent() {
@@ -130,7 +218,7 @@ async function saveEvent() {
         if (date > todayStr) {
             showToast('❌ Cannot record events in the future! Date set to today.', 'error');
             document.getElementById('event-date').value = todayStr;
-            // Re-run save after resetting? No, just return and let user try again
+            updateDateHelpText(todayStr);
             return;
         }
         
@@ -208,66 +296,3 @@ async function deleteEvent(id) {
         showToast('Failed to delete event', 'error');
     }
 }
-
-// ============================================
-// NEW: DATE INPUT HANDLING
-// ============================================
-
-/**
- * Handle date change on the event form
- * Prevents future dates and shows appropriate messages
- */
-function handleEventDateChange() {
-    const dateInput = document.getElementById('event-date');
-    const lateCheckbox = document.getElementById('event-late-entry');
-    const todayStr = today();
-    
-    if (!dateInput) return;
-    
-    const selectedDate = dateInput.value;
-    
-    // If user tries to select a future date
-    if (selectedDate > todayStr) {
-        showToast('⏳ Cannot record events in the future! Resetting to today.', 'warning');
-        dateInput.value = todayStr;
-        lateCheckbox.checked = false;
-        return;
-    }
-    
-    // If user selects a date before today, auto-check "late entry"
-    if (selectedDate < todayStr) {
-        lateCheckbox.checked = true;
-    } else {
-        // If date is today, uncheck late entry
-        lateCheckbox.checked = false;
-    }
-}
-
-/**
- * Setup event form date handling
- * Call this when the event modal opens
- */
-function setupEventDateHandler() {
-    const dateInput = document.getElementById('event-date');
-    if (dateInput) {
-        // Remove any existing listener to avoid duplicates
-        dateInput.removeEventListener('change', handleEventDateChange);
-        dateInput.addEventListener('change', handleEventDateChange);
-    }
-}
-
-// Call this when the modal opens
-const originalOpenEventModal = openEventModal;
-openEventModal = function(date, isLate = false) {
-    originalOpenEventModal(date, isLate);
-    // Setup the date handler after modal is open
-    setTimeout(setupEventDateHandler, 100);
-};
-
-// Also handle when editing
-const originalOpenEditEvent = openEditEvent;
-openEditEvent = function(id) {
-    originalOpenEditEvent(id);
-    // Setup the date handler after modal is open
-    setTimeout(setupEventDateHandler, 100);
-};
