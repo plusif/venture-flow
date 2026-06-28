@@ -158,3 +158,75 @@
     bottom: 0;
     background: var(--primary);
 }
+
+/* ============================================
+   TIMELINE - EMPTY DAYS & TODAY
+   ============================================ */
+
+.day-block.today {
+    background: rgba(46, 204, 113, 0.05);
+    border-radius: 8px;
+    padding: 0 4px;
+}
+
+.day-block.empty-day {
+    opacity: 0.7;
+}
+
+.day-block.empty-day .day-header {
+    border-bottom-color: var(--gray-700);
+}
+
+.today-label {
+    color: var(--support) !important;
+    font-weight: 600 !important;
+}
+
+.empty-badge {
+    font-size: 10px;
+    color: var(--gray-500);
+    background: var(--gray-800);
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+}
+
+.empty-badge.today-empty {
+    color: var(--support);
+    background: rgba(46, 204, 113, 0.1);
+    animation: pulse-empty 2s infinite;
+}
+
+.empty-placeholder {
+    height: 24px;
+    border: 1px dashed var(--gray-700);
+    border-radius: 4px;
+    margin: 2px 0;
+    opacity: 0.3;
+}
+
+.empty-row .timeline-line {
+    opacity: 0.3;
+}
+
+@keyframes pulse-empty {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* Date display for empty days */
+.day-block.empty-day .day-date {
+    color: var(--gray-500);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .day-block.today {
+        background: rgba(46, 204, 113, 0.03);
+    }
+    
+    .empty-badge {
+        font-size: 8px;
+        padding: 1px 6px;
+    }
+}
