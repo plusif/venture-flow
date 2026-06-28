@@ -16,7 +16,23 @@ function openEventModal(date, isLate = false) {
     title.textContent = isLate ? 'Add Late Entry' : 'Add Event';
     submitBtn.textContent = 'Save Event';
     lateCheckbox.checked = isLate;
-    dateInput.value = date || today();
+    
+    // Set date to today or provided date
+    const todayStr = today();
+    const selectedDate = date || todayStr;
+    
+    // If editing, allow the existing date
+    // For new events, default to today
+    dateInput.value = selectedDate;
+    
+    // Set max date to today (prevent future dates)
+    dateInput.max = todayStr;
+    
+    // If the provided date is in the future, reset to today
+    if (selectedDate > todayStr) {
+        dateInput.value = todayStr;
+        showToast('Cannot set events in the future. Date set to today.', 'warning');
+    }
     
     document.getElementById('event-form').reset();
     document.getElementById('event-amount').value = '';
@@ -51,6 +67,9 @@ function openEditEvent(id) {
     editId.value = event.id;
     title.textContent = 'Edit Event';
     submitBtn.textContent = 'Update Event';
+    
+    // Set max date to today (prevent changing to future)
+    dateInput.max = today();
     dateInput.value = event.date;
     amountInput.value = event.amount || '';
     descInput.value = event.description;
@@ -72,15 +91,23 @@ function openEditEvent(id) {
 async function saveEvent() {
     try {
         const editId = document.getElementById('event-edit-id').value;
-        const date = document.getElementById('event-date').value;
+        let date = document.getElementById('event-date').value;
         const type = document.querySelector('input[name="eventType"]:checked')?.value;
         const category = document.getElementById('event-category').value;
         const amount = parseInt(document.getElementById('event-amount').value) || 0;
         const description = document.getElementById('event-description').value.trim();
         const lateEntry = document.getElementById('event-late-entry').checked;
+        const todayStr = today();
         
         if (!date || !description) {
             showToast('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        // === CRITICAL VALIDATION: No future dates ===
+        if (date > todayStr) {
+            showToast('❌ Cannot record events in the future! Set date to today or earlier.', 'error');
+            document.getElementById('event-date').value = todayStr;
             return;
         }
         

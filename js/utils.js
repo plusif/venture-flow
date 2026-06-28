@@ -71,3 +71,44 @@ function formatCountdown(targetDate) {
         return 'Invalid date';
     }
 }
+
+// ============================================
+// NEW: DATE VALIDATION HELPERS
+// ============================================
+
+/**
+ * Check if a date is in the future
+ * @param {string} dateStr - Date string in YYYY-MM-DD format
+ * @returns {boolean} True if date is in the future
+ */
+function isFutureDate(dateStr) {
+    if (!dateStr) return false;
+    const todayStr = today();
+    return dateStr > todayStr;
+}
+
+/**
+ * Check if a date is valid (not future and not before origin)
+ * @param {string} dateStr - Date string in YYYY-MM-DD format
+ * @param {string} originDate - Venture origin date
+ * @returns {Object} { valid: boolean, message: string }
+ */
+function validateEventDate(dateStr, originDate) {
+    if (!dateStr) {
+        return { valid: false, message: 'Date is required' };
+    }
+    
+    const todayStr = today();
+    
+    // Check for future date
+    if (dateStr > todayStr) {
+        return { valid: false, message: 'Cannot record events in the future!' };
+    }
+    
+    // Check if before origin
+    if (originDate && dateStr < originDate) {
+        return { valid: false, message: `Cannot record events before venture origin (${formatDate(originDate)})` };
+    }
+    
+    return { valid: true, message: 'Valid date' };
+}

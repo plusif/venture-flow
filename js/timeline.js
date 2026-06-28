@@ -1,5 +1,5 @@
 // ============================================
-// TIMELINE RENDERER
+// TIMELINE RENDERER - FIXED
 // ============================================
 
 function renderTimeline() {
@@ -20,6 +20,7 @@ function renderTimeline() {
     const originDate = new Date(venture.originDate + 'T00:00:00');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
     
     // If origin is in the future, show a message
     if (originDate > today) {
@@ -33,9 +34,18 @@ function renderTimeline() {
         return;
     }
     
-    // Group events by date
+    // === CRITICAL: Filter events to only include today and past ===
+    const validEvents = AppState.events.filter(e => e.date <= todayStr);
+    
+    // If there are future events in the database, log a warning
+    const futureEvents = AppState.events.filter(e => e.date > todayStr);
+    if (futureEvents.length > 0) {
+        console.warn(`⚠️ Found ${futureEvents.length} future events. They will not be displayed.`, futureEvents);
+    }
+    
+    // Group events by date (only valid events)
     const grouped = {};
-    AppState.events.forEach(event => {
+    validEvents.forEach(event => {
         if (!grouped[event.date]) grouped[event.date] = [];
         grouped[event.date].push(event);
     });
@@ -49,22 +59,25 @@ function renderTimeline() {
         currentDate.setDate(currentDate.getDate() + 1);
     }
     
+    // If no dates (shouldn't happen), show empty
+    if (allDates.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📅</span>
+                <p>No dates in timeline.</p>
+            </div>
+        `;
+        return;
+    }
+    
     let html = '<div class="timeline">';
     
-    // Show today's date as a marker
-    const todayStr = today.toISOString().split('T')[0];
-    
-    allDates.forEach((date, index) => {
+    allDates.forEach((date) => {
         const events = grouped[date] || [];
         const isOrigin = date === venture.originDate;
         const isToday = date === todayStr;
         const hasLateEntry = events.some(e => e.lateEntry === true);
         const isEmpty = events.length === 0;
-        const isPast = date < todayStr;
-        const isFuture = date > todayStr;
-        
-        // Skip future dates (shouldn't happen since we stop at today)
-        if (isFuture) return;
         
         html += `<div class="day-block ${isToday ? 'today' : ''} ${isEmpty ? 'empty-day' : ''}">`;
         html += `<div class="day-header">`;
@@ -76,8 +89,7 @@ function renderTimeline() {
         
         if (isOrigin) html += `<span class="origin-badge">● ORIGIN</span>`;
         if (hasLateEntry) html += `<span class="late-badge">📝 Late Entry</span>`;
-        if (isEmpty && isPast) html += `<span class="empty-badge">⏳ No activity</span>`;
-        if (isEmpty && isToday) html += `<span class="empty-badge today-empty">📝 Add your first event for today</span>`;
+        if (isEmpty) html += `<span class="empty-badge">⏳ No activity</span>`;
         
         html += `</div>`;
         
@@ -139,7 +151,7 @@ function renderTimeline() {
     container.innerHTML = html;
     
     // If no events at all, show a more helpful message
-    if (AppState.events.length === 0) {
+    if (validEvents.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <span class="empty-icon">📅</span>
