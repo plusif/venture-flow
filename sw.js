@@ -1,6 +1,10 @@
 // Venture Flow - Service Worker
-const CACHE_NAME = 'venture-flow-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE_NAME = 'venture-flow-v2';
+const ASSETS = [
+    '/venture-flow/',
+    '/venture-flow/index.html',
+    '/venture-flow/manifest.json'
+];
 
 self.addEventListener('install', event => {
     event.waitUntil(
