@@ -2,7 +2,7 @@
     "name": "Venture Flow",
     "short_name": "VentureFlow",
     "description": "Track your venture's interaction with reality",
-    "start_url": "/venture-flow/",
+    "start_url": "https://plusif.github.io/venture-flow/",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#1a1a2e",

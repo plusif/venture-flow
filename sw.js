@@ -1,9 +1,9 @@
 // Venture Flow - Service Worker
-const CACHE_NAME = 'venture-flow-v2';
+const CACHE_NAME = 'venture-flow-v3';
 const ASSETS = [
-    '/venture-flow/',
-    '/venture-flow/index.html',
-    '/venture-flow/manifest.json'
+    'https://plusif.github.io/venture-flow/',
+    'https://plusif.github.io/venture-flow/index.html',
+    'https://plusif.github.io/venture-flow/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -11,6 +11,9 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(ASSETS))
             .then(() => self.skipWaiting())
+            .catch(error => {
+                console.error('[SW] Cache failed:', error);
+            })
     );
 });
 
