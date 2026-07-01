@@ -170,10 +170,58 @@
         <div class="modal-header"><h2 id="inv-modal-title">Add Product</h2><button class="modal-close" data-modal="inventory-modal">&times;</button></div>
         <form id="inventory-form">
             <input type="hidden" id="inv-edit-id" value="">
-            <div class="form-group"><label for="inv-name">Product Name</label><input type="text" id="inv-name" placeholder="e.g. Coffee Table" required></div>
-            <div class="form-group"><label for="inv-cost">Cost to Produce (Ksh)</label><input type="number" id="inv-cost" placeholder="0" step="1" required></div>
-            <div class="form-group"><label for="inv-price">Selling Price (Ksh)</label><input type="number" id="inv-price" placeholder="0" step="1" required></div>
-            <div class="form-group"><label for="inv-status">Status</label><select id="inv-status"><option value="for_sale">For Sale</option><option value="in_production">In Production</option><option value="sold">Sold</option></select></div>
+            
+            <div class="form-group">
+                <label for="inv-name">Product Name</label>
+                <input type="text" id="inv-name" placeholder="e.g. Coffee Table" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="inv-cost">Cost to Produce (Ksh)</label>
+                <input type="number" id="inv-cost" placeholder="0" step="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="inv-price">Selling Price (Ksh)</label>
+                <input type="number" id="inv-price" placeholder="0" step="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="inv-status">Status</label>
+                <select id="inv-status">
+                    <option value="for_sale">For Sale</option>
+                    <option value="in_production">In Production</option>
+                    <option value="sold">Sold</option>
+                </select>
+            </div>
+            
+            <!-- NEW: Image Capture Section -->
+            <div class="form-group">
+                <label for="inv-image">📷 Product Image</label>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="captureInventoryImage()">
+                            📸 Take Photo
+                        </button>
+                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="uploadInventoryImage()">
+                            📁 Upload Image
+                        </button>
+                        <button type="button" class="submit-btn danger" style="flex:0.5;" onclick="clearInventoryImage()">
+                            ✕
+                        </button>
+                    </div>
+                    <input type="file" id="inv-image-input" accept="image/*" style="display:none;" onchange="handleInventoryImageUpload(event)">
+                    <div id="inv-image-preview" style="display:none;border:1px solid var(--gray-700);border-radius:8px;padding:8px;background:var(--bg-secondary);text-align:center;">
+                        <img id="inv-image-display" src="" alt="Product preview" style="max-width:100%;max-height:150px;border-radius:4px;">
+                        <div style="font-size:10px;color:var(--gray-500);margin-top:4px;">Image captured ✓</div>
+                    </div>
+                    <input type="hidden" id="inv-image-data" value="">
+                </div>
+                <small style="color:var(--gray-500);display:block;margin-top:4px;font-size:11px;">
+                    📷 Take a photo or upload an image of your product. Required.
+                </small>
+            </div>
+            
             <button type="submit" class="submit-btn" id="inv-submit-btn">Add Product</button>
         </form>
     </div>
