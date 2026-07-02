@@ -284,7 +284,113 @@ async function switchVenture(id) {
 }
 
 // ============================================
-// AUTH FUNCTIONS (NEW)
+// DATA MIGRATION - CLAIM EXISTING DATA
+// ============================================
+
+async function checkAndMigrateData() {
+    try {
+        if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) {
+            return;
+        }
+        
+        const userId = Auth.getUserFilter();
+        console.log('🔍 Checking for legacy data to migrate...');
+        
+        // Check if there's data without userId
+        const allVentures = await window.db.getAll('venture');
+        const hasLegacyData = allVentures.some(v => !v.userId);
+        
+        if (!hasLegacyData) {
+            console.log('✅ No legacy data found.');
+            return;
+        }
+        
+        // Count legacy data
+        const legacyVentures = allVentures.filter(v => !v.userId);
+        const allEvents = await window.db.getAll('events');
+        const legacyEvents = allEvents.filter(e => !e.userId);
+        const allInventory = await window.db.getAll('inventory');
+        const legacyInventory = allInventory.filter(i => !i.userId);
+        const allDebts = await window.db.getAll('debts');
+        const legacyDebts = allDebts.filter(d => !d.userId);
+        
+        const totalItems = legacyVentures.length + legacyEvents.length + legacyInventory.length + legacyDebts.length;
+        
+        if (totalItems === 0) {
+            console.log('✅ No legacy data to migrate.');
+            return;
+        }
+        
+        console.log(`📦 Found ${totalItems} legacy items to migrate:`);
+        console.log(`   - ${legacyVentures.length} ventures`);
+        console.log(`   - ${legacyEvents.length} events`);
+        console.log(`   - ${legacyInventory.length} inventory items`);
+        console.log(`   - ${legacyDebts.length} debts`);
+        
+        // Show migration prompt to user
+        const shouldMigrate = confirm(
+            `🔐 Found ${totalItems} items from before you had an account.\n\n` +
+            `Would you like to claim these as yours?\n\n` +
+            `• ${legacyVentures.length} ventures\n` +
+            `• ${legacyEvents.length} events\n` +
+            `• ${legacyInventory.length} inventory items\n` +
+            `• ${legacyDebts.length} debts\n\n` +
+            `Click OK to claim them, or Cancel to start fresh.`
+        );
+        
+        if (!shouldMigrate) {
+            console.log('⏭️ Migration skipped by user.');
+            return;
+        }
+        
+        // Perform migration
+        console.log('🔄 Starting migration...');
+        let migrated = 0;
+        
+        // Migrate Ventures
+        for (const v of legacyVentures) {
+            v.userId = userId;
+            await window.db.put('venture', v);
+            migrated++;
+        }
+        
+        // Migrate Events
+        for (const e of legacyEvents) {
+            e.userId = userId;
+            await window.db.put('events', e);
+            migrated++;
+        }
+        
+        // Migrate Inventory
+        for (const i of legacyInventory) {
+            i.userId = userId;
+            await window.db.put('inventory', i);
+            migrated++;
+        }
+        
+        // Migrate Debts
+        for (const d of legacyDebts) {
+            d.userId = userId;
+            await window.db.put('debts', d);
+            migrated++;
+        }
+        
+        console.log(`✅ Migration complete! ${migrated} items claimed.`);
+        showToast(`🎉 Successfully claimed ${migrated} items from your previous data!`, 'success');
+        
+        // Refresh the app to show migrated data
+        setTimeout(() => {
+            renderAll();
+        }, 500);
+        
+    } catch (error) {
+        console.error('❌ Migration failed:', error);
+        showToast('Failed to migrate data. Please try again.', 'error');
+    }
+}
+
+// ============================================
+// AUTH FUNCTIONS
 // ============================================
 
 function showAuthOverlay(show) {
@@ -344,8 +450,13 @@ function handleLogin(event) {
         console.log('✅ Login successful');
         showAuthOverlay(false);
         updateUserInfo();
-        // Re-initialize app with user data
-        initApp();
+        
+        // ✅ Check for legacy data to migrate
+        setTimeout(async () => {
+            await checkAndMigrateData();
+            initApp(); // Re-initialize with migrated data
+        }, 300);
+        
     } else {
         errorEl.textContent = '❌ ' + result.message;
     }
@@ -365,8 +476,13 @@ function handleRegister(event) {
         console.log('✅ Registration successful');
         showAuthOverlay(false);
         updateUserInfo();
-        // Re-initialize app with user data
-        initApp();
+        
+        // ✅ Check for legacy data to migrate
+        setTimeout(async () => {
+            await checkAndMigrateData();
+            initApp(); // Re-initialize with migrated data
+        }, 300);
+        
     } else {
         errorEl.textContent = '❌ ' + result.message;
     }
