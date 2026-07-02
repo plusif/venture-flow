@@ -12,7 +12,7 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">     <!-- ✅ ADD THIS -->
+    <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/timeline.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/inventory.css">
@@ -87,6 +87,7 @@
         <div class="header-right">
             <span id="venture-date" class="venture-date">Since: --</span>
             <div id="user-info" class="user-info" style="display:none;">
+                <span class="user-avatar" id="user-avatar-display">JD</span>
                 <span class="user-name" id="user-name-display">User</span>
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
@@ -403,7 +404,7 @@
 <script src="js/categories.js"></script>
 
 <!-- 4. AUTHENTICATION (depends on nothing, but needed before app) -->
-<script src="js/auth.js"></script>     <!-- ✅ ADD THIS -->
+<script src="js/auth.js"></script>
 
 <!-- 5. CRUD operations (depend on state, database, categories) -->
 <script src="js/events.js"></script>

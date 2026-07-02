@@ -239,3 +239,51 @@
         font-size: 24px;
     }
 }
+
+/* User avatar initials */
+.user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2ecc71;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-400);
+}
+
+.user-info .user-name {
+    color: var(--gray-200);
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.user-info .logout-btn {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.user-info .logout-btn:hover {
+    color: var(--friction);
+    background: rgba(231, 76, 60, 0.1);
+}

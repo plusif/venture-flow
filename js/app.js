@@ -284,22 +284,84 @@ async function switchVenture(id) {
 }
 
 // ============================================
-// AUTH FUNCTIONS (NEW)
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Get initials from a full name
+ * @param {string} name - Full name (e.g. "John Doe")
+ * @returns {string} Initials (e.g. "JD")
+ */
+function getInitials(name) {
+    if (!name) return 'U';
+    
+    // Split by spaces and get first letter of each part
+    const parts = name.trim().split(/\s+/);
+    let initials = '';
+    
+    // Get first letter of each part (max 2 parts)
+    for (let i = 0; i < Math.min(parts.length, 2); i++) {
+        if (parts[i].length > 0) {
+            initials += parts[i].charAt(0).toUpperCase();
+        }
+    }
+    
+    // If only one name, return first two letters or just first letter
+    if (initials.length === 0) return 'U';
+    if (initials.length === 1 && parts.length === 1) {
+        // Single name: use first two letters if available
+        return name.trim().substring(0, 2).toUpperCase();
+    }
+    
+    return initials;
+}
+
+// ============================================
+// AUTH FUNCTIONS
 // ============================================
 
 function showAuthOverlay(show) {
     const overlay = document.getElementById('auth-overlay');
     if (overlay) {
-        overlay.style.display = show ? 'flex' : 'none';
+        if (show) {
+            overlay.style.display = 'flex';
+            overlay.style.visibility = 'visible';
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'all';
+            // Prevent scrolling behind overlay
+            document.body.style.overflow = 'hidden';
+        } else {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            // Restore scrolling
+            document.body.style.overflow = '';
+        }
     }
 }
 
 function updateUserInfo() {
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name-display');
+    const userAvatar = document.getElementById('user-avatar-display');
+    
     if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
         userInfo.style.display = 'flex';
-        userName.textContent = Auth.currentUser.name;
+        const initials = getInitials(Auth.currentUser.name);
+        const fullName = Auth.currentUser.name;
+        
+        // Update avatar with initials
+        if (userAvatar) {
+            userAvatar.textContent = initials;
+            userAvatar.title = fullName;
+        }
+        
+        // Update full name (shown next to avatar or hidden)
+        if (userName) {
+            userName.textContent = fullName;
+            userName.title = fullName;
+        }
     } else {
         userInfo.style.display = 'none';
     }
@@ -344,6 +406,7 @@ function handleLogin(event) {
         console.log('✅ Login successful');
         showAuthOverlay(false);
         updateUserInfo();
+        showToast(`👋 Welcome back, ${result.user.name}!`, 'success');
         // Re-initialize app with user data
         initApp();
     } else {
@@ -365,6 +428,7 @@ function handleRegister(event) {
         console.log('✅ Registration successful');
         showAuthOverlay(false);
         updateUserInfo();
+        showToast(`🎉 Welcome, ${name}!`, 'success');
         // Re-initialize app with user data
         initApp();
     } else {
