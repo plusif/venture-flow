@@ -1,5 +1,5 @@
 // ============================================
-// INVENTORY CRUD OPERATIONS - WITH DETAIL VIEW
+// INVENTORY CRUD OPERATIONS - WITH USER ID SUPPORT
 // ============================================
 
 // Track current detail product ID
@@ -195,6 +195,16 @@ async function updateInventoryStatus(newStatus) {
                 ventureId: AppState.currentVentureId,
                 lateEntry: false
             };
+            
+            // ============================================
+            // NEW: Add user ID to event if auth is enabled
+            // ============================================
+            if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                eventData.userId = Auth.getUserFilter();
+            } else {
+                eventData.userId = 'dev_user';
+            }
+            
             try {
                 const id = await window.db.add('events', eventData);
                 eventData.id = id;
@@ -420,8 +430,19 @@ async function saveInventory() {
             price, 
             status, 
             imageData: imageData || null,
-            ventureId: AppState.currentVentureId 
+            ventureId: AppState.currentVentureId
         };
+        
+        // ============================================
+        // NEW: Add user ID if auth is enabled
+        // ============================================
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+            data.userId = Auth.getUserFilter();
+            console.log('👤 Adding inventory for user:', data.userId);
+        } else {
+            // Fallback for development without auth
+            data.userId = 'dev_user';
+        }
         
         if (editId) {
             data.id = parseInt(editId);

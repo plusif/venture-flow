@@ -1,5 +1,5 @@
 // ============================================
-// DEBTS CRUD OPERATIONS - FIXED
+// DEBTS CRUD OPERATIONS - WITH USER ID SUPPORT
 // ============================================
 
 function renderDebts() {
@@ -85,7 +85,24 @@ async function saveDebt() {
             return;
         }
         
-        const data = { creditor, amount, dateBorrowed, repaid: false, ventureId: AppState.currentVentureId };
+        const data = { 
+            creditor, 
+            amount, 
+            dateBorrowed, 
+            repaid: false, 
+            ventureId: AppState.currentVentureId 
+        };
+        
+        // ============================================
+        // NEW: Add user ID if auth is enabled
+        // ============================================
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+            data.userId = Auth.getUserFilter();
+            console.log('👤 Adding debt for user:', data.userId);
+        } else {
+            // Fallback for development without auth
+            data.userId = 'dev_user';
+        }
         
         if (editId) {
             data.id = parseInt(editId);
@@ -119,6 +136,16 @@ async function saveDebt() {
                 ventureId: AppState.currentVentureId,
                 lateEntry: false
             };
+            
+            // ============================================
+            // NEW: Add user ID to event if auth is enabled
+            // ============================================
+            if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                eventData.userId = Auth.getUserFilter();
+            } else {
+                eventData.userId = 'dev_user';
+            }
+            
             try {
                 const id = await window.db.add('events', eventData);
                 eventData.id = id;
@@ -142,6 +169,7 @@ async function saveDebt() {
         renderReports();
         updateStatusBar();
     } catch (error) {
+        console.error('Error saving debt:', error);
         showToast('Failed to save debt', 'error');
     }
 }
@@ -169,6 +197,16 @@ async function markDebtPaid(id) {
                 ventureId: AppState.currentVentureId,
                 lateEntry: false
             };
+            
+            // ============================================
+            // NEW: Add user ID to event if auth is enabled
+            // ============================================
+            if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                eventData.userId = Auth.getUserFilter();
+            } else {
+                eventData.userId = 'dev_user';
+            }
+            
             try {
                 const id = await window.db.add('events', eventData);
                 eventData.id = id;
@@ -187,6 +225,7 @@ async function markDebtPaid(id) {
             showToast('Debt marked as paid', 'success');
         }
     } catch (error) {
+        console.error('Error marking debt as paid:', error);
         showToast('Failed to mark debt as paid', 'error');
     }
 }
@@ -204,6 +243,7 @@ async function deleteDebt(id) {
         renderDashboard();
         showToast('Debt deleted', 'success');
     } catch (error) {
+        console.error('Error deleting debt:', error);
         showToast('Failed to delete debt', 'error');
     }
 }

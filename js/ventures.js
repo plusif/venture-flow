@@ -1,5 +1,5 @@
 // ============================================
-// VENTURES CRUD OPERATIONS - FIXED
+// VENTURES CRUD OPERATIONS - WITH USER ID SUPPORT
 // ============================================
 
 function renderVentures() {
@@ -84,6 +84,17 @@ async function saveVenture() {
             active: false,
             createdAt: new Date().toISOString()
         };
+        
+        // ============================================
+        // NEW: Add user ID if auth is enabled
+        // ============================================
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+            data.userId = Auth.getUserFilter();
+            console.log('👤 Adding venture for user:', data.userId);
+        } else {
+            // Fallback for development without auth
+            data.userId = 'dev_user';
+        }
         
         var savedId = null;
         try {

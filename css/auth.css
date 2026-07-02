@@ -1,0 +1,224 @@
+/* ============================================
+   AUTHENTICATION STYLES
+   ============================================ */
+
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: var(--bg-primary);
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 380px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 32px 24px;
+    border: 1px solid var(--gray-700);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.auth-logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gray-200);
+    margin: 0;
+}
+
+.auth-logo .subtitle {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--gray-500);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.auth-tab.active {
+    background: var(--gray-700);
+    color: #fff;
+}
+
+.auth-tab:hover:not(.active) {
+    color: var(--gray-300);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.auth-form label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-400);
+}
+
+.auth-form input {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--gray-700);
+    background: var(--bg-primary);
+    color: var(--gray-200);
+    font-size: 14px;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--gray-400);
+}
+
+.auth-form input::placeholder {
+    color: var(--gray-600);
+}
+
+.auth-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: var(--support);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-family: inherit;
+    margin-top: 4px;
+}
+
+.auth-btn:hover {
+    background: #27ae60;
+}
+
+.auth-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-error {
+    color: var(--friction);
+    font-size: 12px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.auth-success {
+    color: var(--support);
+    font-size: 12px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.auth-footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-700);
+}
+
+.auth-footer .link {
+    color: var(--support);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.auth-footer .link:hover {
+    color: #27ae60;
+}
+
+/* Auth overlay (when showing login in app) */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* User info in header */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-400);
+}
+
+.user-info .user-name {
+    color: var(--gray-200);
+    font-weight: 500;
+}
+
+.user-info .logout-btn {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.user-info .logout-btn:hover {
+    color: var(--friction);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 24px 16px;
+    }
+    
+    .auth-logo h1 {
+        font-size: 24px;
+    }
+}

@@ -1,5 +1,5 @@
 // ============================================
-// EVENT CRUD OPERATIONS - FIXED
+// EVENT CRUD OPERATIONS - WITH USER ID SUPPORT
 // ============================================
 
 function openEventModal(date, isLate = false) {
@@ -237,6 +237,17 @@ async function saveEvent() {
             ventureId: AppState.currentVentureId,
             lateEntry: lateEntry || date < todayStr // Auto-mark as late if date is before today
         };
+        
+        // ============================================
+        // NEW: Add user ID if auth is enabled
+        // ============================================
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+            eventData.userId = Auth.getUserFilter();
+            console.log('👤 Adding event for user:', eventData.userId);
+        } else {
+            // Fallback for development without auth
+            eventData.userId = 'dev_user';
+        }
         
         if (editId) {
             // Update existing

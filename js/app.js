@@ -9,6 +9,25 @@ async function initApp() {
         // ADD THIS: Wait a tiny bit for DOM to be fully ready
         await new Promise(resolve => setTimeout(resolve, 50));
         
+        // ============================================
+        // NEW: CHECK AUTHENTICATION FIRST
+        // ============================================
+        if (typeof Auth !== 'undefined') {
+            const loggedIn = Auth.init();
+            if (!loggedIn) {
+                console.log('🔒 User not logged in. Showing login...');
+                showAuthOverlay(true);
+                return; // Stop app initialization until logged in
+            } else {
+                console.log('✅ User logged in:', Auth.currentUser.name);
+                showAuthOverlay(false);
+                updateUserInfo();
+            }
+        } else {
+            console.warn('⚠️ Auth module not available');
+            // Continue without auth (development mode)
+        }
+        
         // 1. Open Database
         let dbOpen = false;
         try {
@@ -20,24 +39,37 @@ async function initApp() {
             dbOpen = false;
         }
         
-        // 2. Check for existing ventures
+        // 2. Check for existing ventures (filtered by user)
         if (dbOpen) {
             try {
                 const existingVentures = await window.db.getAll('venture');
-                if (!existingVentures || existingVentures.length === 0) {
+                // Filter by user ID if auth is enabled
+                let filteredVentures = existingVentures;
+                if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                    const userId = Auth.getUserFilter();
+                    filteredVentures = existingVentures.filter(v => v.userId === userId);
+                }
+                if (!filteredVentures || filteredVentures.length === 0) {
                     console.log('📦 No ventures found. User needs to create first venture.');
                 } else {
-                    console.log(`📦 Found ${existingVentures.length} ventures in database`);
+                    console.log(`📦 Found ${filteredVentures.length} ventures in database`);
                 }
             } catch (e) {
                 console.warn('⚠️ Error checking ventures:', e);
             }
         }
         
-        // 3. Load Ventures from database
+        // 3. Load Ventures from database (filtered by user)
         try {
             if (dbOpen) {
-                AppState.ventures = await window.db.getAll('venture');
+                const allVentures = await window.db.getAll('venture');
+                // Filter by user ID if auth is enabled
+                if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+                    const userId = Auth.getUserFilter();
+                    AppState.ventures = allVentures.filter(v => v.userId === userId);
+                } else {
+                    AppState.ventures = allVentures;
+                }
                 console.log(`✅ Loaded ${AppState.ventures.length} ventures from DB`);
             }
         } catch (e) {
@@ -250,6 +282,116 @@ async function switchVenture(id) {
         showToast('Failed to switch venture', 'error');
     }
 }
+
+// ============================================
+// AUTH FUNCTIONS (NEW)
+// ============================================
+
+function showAuthOverlay(show) {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+    }
+}
+
+function updateUserInfo() {
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name-display');
+    if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+        userInfo.style.display = 'flex';
+        userName.textContent = Auth.currentUser.name;
+    } else {
+        userInfo.style.display = 'none';
+    }
+}
+
+function switchAuthTab(tab) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginTab = document.querySelector('[data-tab="login"]');
+    const registerTab = document.querySelector('[data-tab="register"]');
+    const toggleText = document.getElementById('auth-toggle-text');
+    
+    if (tab === 'login') {
+        loginForm.style.display = 'flex';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        toggleText.textContent = "Don't have an account?";
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        toggleText.textContent = 'Already have an account?';
+    }
+    
+    // Clear errors
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('register-error').textContent = '';
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    
+    errorEl.textContent = '';
+    
+    const result = Auth.login(email, password);
+    if (result.success) {
+        console.log('✅ Login successful');
+        showAuthOverlay(false);
+        updateUserInfo();
+        // Re-initialize app with user data
+        initApp();
+    } else {
+        errorEl.textContent = '❌ ' + result.message;
+    }
+}
+
+function handleRegister(event) {
+    event.preventDefault();
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    const errorEl = document.getElementById('register-error');
+    
+    errorEl.textContent = '';
+    
+    const result = Auth.register(email, password, name);
+    if (result.success) {
+        console.log('✅ Registration successful');
+        showAuthOverlay(false);
+        updateUserInfo();
+        // Re-initialize app with user data
+        initApp();
+    } else {
+        errorEl.textContent = '❌ ' + result.message;
+    }
+}
+
+function handleLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        Auth.logout();
+        showAuthOverlay(true);
+        // Clear app state
+        AppState.ventures = [];
+        AppState.events = [];
+        AppState.inventory = [];
+        AppState.debts = [];
+        AppState.currentVentureId = null;
+        renderAll();
+        showToast('Logged out successfully', 'info');
+    }
+}
+
+// Make auth functions globally accessible
+window.switchAuthTab = switchAuthTab;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleLogout = handleLogout;
 
 // ============================================
 // ADVISOR BADGE
