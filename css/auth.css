@@ -3,7 +3,7 @@
    ============================================ */
 
 /* Auth Overlay - Full screen overlay */
-.auth-overlay {
+#auth-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -12,18 +12,27 @@
     width: 100vw;
     height: 100vh;
     background: var(--bg-primary);
-    z-index: 99999;
+    z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 
-/* When hidden, don't show */
-.auth-overlay[style*="display: none"],
-.auth-overlay[style*="display:none"] {
-    pointer-events: none;
+/* When hidden, completely hide */
+#auth-overlay[style*="display: none"],
+#auth-overlay[style*="display:none"] {
+    display: none !important;
+}
+
+/* When visible, ensure it covers everything */
+#auth-overlay:not([style*="display: none"]):not([style*="display:none"]) {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
 }
 
 .auth-box {
@@ -33,9 +42,10 @@
     border-radius: 12px;
     padding: 32px 24px;
     border: 1px solid var(--gray-700);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
     position: relative;
-    z-index: 100000;
+    z-index: 1000000;
+    margin: auto;
 }
 
 .auth-logo {
@@ -213,19 +223,31 @@
     background: rgba(231, 76, 60, 0.1);
 }
 
+/* Ensure app is hidden behind overlay */
+#app {
+    display: block;
+}
+
+/* When auth overlay is visible, app should be behind it */
+#auth-overlay:not([style*="display: none"]):not([style*="display:none"]) ~ #app {
+    filter: blur(0px);
+    pointer-events: none;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
+    #auth-overlay {
+        padding: 10px;
+        align-items: center;
+    }
+    
     .auth-box {
         padding: 24px 16px;
         margin: 10px;
+        max-width: 100%;
     }
     
     .auth-logo h1 {
         font-size: 24px;
-    }
-    
-    .auth-overlay {
-        padding: 10px;
-        align-items: center;
     }
 }
