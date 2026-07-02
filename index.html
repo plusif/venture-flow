@@ -227,6 +227,64 @@
     </div>
 </div>
 
+<!-- Inventory Detail Modal -->
+<div id="inventory-detail-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+            <h2 id="detail-product-name">Product Details</h2>
+            <button class="modal-close" data-modal="inventory-detail-modal">&times;</button>
+        </div>
+        <div id="detail-content" style="padding:4px 0;">
+            <!-- Product image -->
+            <div style="text-align:center;margin:8px 0;padding:12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--gray-700);">
+                <img id="detail-product-image" src="" alt="Product" style="max-width:100%;max-height:200px;border-radius:4px;object-fit:contain;">
+                <div id="detail-no-image" style="display:none;padding:30px 0;color:var(--gray-500);font-size:48px;">📷</div>
+            </div>
+            
+            <!-- Product info -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;padding:12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--gray-700);">
+                <div>
+                    <div style="font-size:10px;color:var(--gray-500);text-transform:uppercase;">Cost</div>
+                    <div style="font-size:16px;font-weight:600;" id="detail-cost">--</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--gray-500);text-transform:uppercase;">Price</div>
+                    <div style="font-size:16px;font-weight:600;" id="detail-price">--</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--gray-500);text-transform:uppercase;">Status</div>
+                    <div style="font-size:14px;font-weight:600;" id="detail-status">--</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--gray-500);text-transform:uppercase;">Profit</div>
+                    <div style="font-size:14px;font-weight:600;" id="detail-profit">--</div>
+                </div>
+            </div>
+            
+            <!-- Status Management -->
+            <div style="margin:12px 0;">
+                <label style="font-size:12px;font-weight:600;color:var(--gray-300);display:block;margin-bottom:6px;">📌 Update Status</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="detail-status-buttons">
+                    <button class="status-btn status-for-sale" data-status="for_sale" onclick="updateInventoryStatus('for_sale')">🛒 For Sale</button>
+                    <button class="status-btn status-sold" data-status="sold" onclick="updateInventoryStatus('sold')">✅ Sold</button>
+                    <button class="status-btn status-lay-by" data-status="lay_by" onclick="updateInventoryStatus('lay_by')">📦 Lay-by</button>
+                    <button class="status-btn status-on-hold" data-status="on_hold" onclick="updateInventoryStatus('on_hold')">⏸ On Hold</button>
+                    <button class="status-btn status-on-shelf" data-status="on_shelf" onclick="updateInventoryStatus('on_shelf')">📚 On Shelf</button>
+                    <button class="status-btn status-in-production" data-status="in_production" onclick="updateInventoryStatus('in_production')">🔧 In Production</button>
+                </div>
+            </div>
+            
+            <!-- Action buttons -->
+            <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-700);">
+                <button class="submit-btn" style="flex:1;" onclick="closeInventoryDetail()">Close</button>
+                <button class="submit-btn" style="flex:1;background:var(--info);" onclick="editFromDetail()">✎ Edit</button>
+            </div>
+        </div>
+        <input type="hidden" id="detail-product-id" value="">
+    </div>
+</div>
+
 <!-- Debt Modal -->
 <div id="debt-modal" class="modal">
     <div class="modal-overlay"></div>

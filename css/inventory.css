@@ -125,3 +125,112 @@
         flex: 1 1 60%;
     }
 }
+
+/* ============================================
+   INVENTORY STATUS STYLES
+   ============================================ */
+
+/* Status labels in list */
+.status-lay-by {
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+}
+
+.status-on-hold {
+    background: rgba(241, 196, 15, 0.2);
+    color: var(--warning);
+}
+
+.status-on-shelf {
+    background: rgba(46, 204, 113, 0.15);
+    color: var(--support);
+}
+
+/* ============================================
+   INVENTORY DETAIL VIEW
+   ============================================ */
+
+/* Status buttons in detail view */
+.status-btn {
+    padding: 8px 12px;
+    border: 2px solid var(--gray-700);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--gray-400);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.status-btn:hover {
+    border-color: var(--gray-400);
+    color: var(--gray-200);
+}
+
+.status-btn.active {
+    border-color: var(--gray-400);
+    background: var(--gray-700);
+    color: #fff;
+}
+
+/* Individual status button colors */
+.status-btn.status-for-sale.active {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.2);
+    color: var(--support);
+}
+
+.status-btn.status-sold.active {
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--friction);
+}
+
+.status-btn.status-lay-by.active {
+    border-color: #3498db;
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+}
+
+.status-btn.status-on-hold.active {
+    border-color: #f1c40f;
+    background: rgba(241, 196, 15, 0.2);
+    color: var(--warning);
+}
+
+.status-btn.status-on-shelf.active {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.15);
+    color: var(--support);
+}
+
+.status-btn.status-in-production.active {
+    border-color: #e67e22;
+    background: rgba(230, 126, 34, 0.2);
+    color: #e67e22;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .status-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+    }
+    
+    #detail-status-buttons {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+/* Animation for status update */
+@keyframes statusUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.status-btn.active {
+    animation: statusUpdate 0.3s ease;
+}

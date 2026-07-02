@@ -1,6 +1,9 @@
 // ============================================
-// INVENTORY CRUD OPERATIONS - WITH IMAGE SUPPORT (FIXED)
+// INVENTORY CRUD OPERATIONS - WITH DETAIL VIEW
 // ============================================
+
+// Track current detail product ID
+let currentDetailProductId = null;
 
 function renderInventory() {
     const container = document.getElementById('inventory-list');
@@ -17,8 +20,22 @@ function renderInventory() {
         return;
     }
     
-    const statusLabels = { 'for_sale': 'For Sale', 'sold': 'Sold', 'in_production': 'In Production' };
-    const statusClasses = { 'for_sale': 'status-for-sale', 'sold': 'status-sold', 'in_production': 'status-production' };
+    const statusLabels = { 
+        'for_sale': 'For Sale', 
+        'sold': 'Sold', 
+        'in_production': 'In Production',
+        'lay_by': 'Lay-by',
+        'on_hold': 'On Hold',
+        'on_shelf': 'On Shelf'
+    };
+    const statusClasses = { 
+        'for_sale': 'status-for-sale', 
+        'sold': 'status-sold', 
+        'in_production': 'status-production',
+        'lay_by': 'status-lay-by',
+        'on_hold': 'status-on-hold',
+        'on_shelf': 'status-on-shelf'
+    };
     
     let html = '';
     AppState.inventory.forEach(item => {
@@ -27,17 +44,20 @@ function renderInventory() {
             ? `<div class="item-image-thumb"><img src="${item.imageData}" alt="${escapeHtml(item.name)}"></div>`
             : `<div class="item-image-thumb no-image">📷</div>`;
         
+        const statusLabel = statusLabels[item.status] || item.status;
+        const statusClass = statusClasses[item.status] || '';
+        
         html += `
-            <div class="inventory-item">
+            <div class="inventory-item" onclick="openInventoryDetail(${item.id})" style="cursor:pointer;">
                 ${imageHtml}
                 <div class="item-info">
                     <div class="item-name">${escapeHtml(item.name)}</div>
                     <div class="item-details">Cost: ${formatCurrency(item.cost)} | Price: ${formatCurrency(item.price)}</div>
                 </div>
                 <div style="text-align:right;">
-                    <span class="item-status ${statusClasses[item.status] || ''}">${statusLabels[item.status] || item.status}</span>
-                    <button class="edit-btn-sm" onclick="openEditInventory(${item.id})">✎</button>
-                    <button class="delete-btn" onclick="deleteInventory(${item.id})">✕</button>
+                    <span class="item-status ${statusClass}">${statusLabel}</span>
+                    <button class="edit-btn-sm" onclick="event.stopPropagation();openEditInventory(${item.id})">✎</button>
+                    <button class="delete-btn" onclick="event.stopPropagation();deleteInventory(${item.id})">✕</button>
                 </div>
             </div>
         `;
@@ -45,6 +65,176 @@ function renderInventory() {
     
     container.innerHTML = html;
 }
+
+// ============================================
+// INVENTORY DETAIL VIEW
+// ============================================
+
+function openInventoryDetail(id) {
+    const item = AppState.inventory.find(i => i.id === id);
+    if (!item) {
+        showToast('Product not found', 'error');
+        return;
+    }
+    
+    currentDetailProductId = id;
+    
+    const modal = document.getElementById('inventory-detail-modal');
+    const nameEl = document.getElementById('detail-product-name');
+    const imageEl = document.getElementById('detail-product-image');
+    const noImageEl = document.getElementById('detail-no-image');
+    const costEl = document.getElementById('detail-cost');
+    const priceEl = document.getElementById('detail-price');
+    const statusEl = document.getElementById('detail-status');
+    const profitEl = document.getElementById('detail-profit');
+    const idInput = document.getElementById('detail-product-id');
+    
+    // Set values
+    nameEl.textContent = item.name;
+    idInput.value = item.id;
+    
+    // Image
+    if (item.imageData) {
+        imageEl.src = item.imageData;
+        imageEl.style.display = 'block';
+        noImageEl.style.display = 'none';
+    } else {
+        imageEl.style.display = 'none';
+        noImageEl.style.display = 'block';
+    }
+    
+    // Details
+    costEl.textContent = formatCurrency(item.cost);
+    priceEl.textContent = formatCurrency(item.price);
+    
+    const statusLabels = { 
+        'for_sale': '🛒 For Sale', 
+        'sold': '✅ Sold', 
+        'in_production': '🔧 In Production',
+        'lay_by': '📦 Lay-by',
+        'on_hold': '⏸ On Hold',
+        'on_shelf': '📚 On Shelf'
+    };
+    statusEl.textContent = statusLabels[item.status] || item.status;
+    
+    const profit = item.price - item.cost;
+    const profitColor = profit > 0 ? 'var(--support)' : profit < 0 ? 'var(--friction)' : 'var(--gray-400)';
+    profitEl.textContent = formatCurrency(profit);
+    profitEl.style.color = profitColor;
+    
+    // Highlight current status button
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.status === item.status) {
+            btn.classList.add('active');
+        }
+    });
+    
+    modal.classList.add('visible');
+}
+
+function closeInventoryDetail() {
+    document.getElementById('inventory-detail-modal').classList.remove('visible');
+    currentDetailProductId = null;
+}
+
+function editFromDetail() {
+    const id = parseInt(document.getElementById('detail-product-id').value);
+    if (id) {
+        closeInventoryDetail();
+        // Small delay to let modal close
+        setTimeout(() => {
+            openEditInventory(id);
+        }, 300);
+    }
+}
+
+// ============================================
+// INVENTORY STATUS MANAGEMENT
+// ============================================
+
+async function updateInventoryStatus(newStatus) {
+    const id = parseInt(document.getElementById('detail-product-id').value);
+    if (!id) {
+        showToast('No product selected', 'error');
+        return;
+    }
+    
+    const item = AppState.inventory.find(i => i.id === id);
+    if (!item) {
+        showToast('Product not found', 'error');
+        return;
+    }
+    
+    // If status is the same, just close
+    if (item.status === newStatus) {
+        closeInventoryDetail();
+        return;
+    }
+    
+    // Confirmation for sold
+    if (newStatus === 'sold') {
+        if (!confirm(`Mark "${item.name}" as sold? This will record a sale.`)) {
+            return;
+        }
+    }
+    
+    try {
+        // Update the item
+        item.status = newStatus;
+        await window.db.put('inventory', item);
+        
+        // If marking as sold, also add a sale event
+        if (newStatus === 'sold') {
+            const eventData = {
+                date: today(),
+                type: 'support',
+                category: 'sale',
+                amount: item.price,
+                description: `Sold: ${item.name} for ${formatCurrency(item.price)}`,
+                ventureId: AppState.currentVentureId,
+                lateEntry: false
+            };
+            try {
+                const id = await window.db.add('events', eventData);
+                eventData.id = id;
+            } catch (e) {
+                console.warn('DB event add failed, using memory only:', e);
+                eventData.id = Date.now() + Math.random() * 1000;
+            }
+            AppState.events.push(eventData);
+            AppState.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+            showToast(`✅ "${item.name}" marked as sold! Sale recorded.`, 'success');
+        } else {
+            const statusLabels = { 
+                'for_sale': 'For Sale', 
+                'sold': 'Sold', 
+                'in_production': 'In Production',
+                'lay_by': 'Lay-by',
+                'on_hold': 'On Hold',
+                'on_shelf': 'On Shelf'
+            };
+            showToast(`📌 "${item.name}" status updated to ${statusLabels[newStatus] || newStatus}`, 'success');
+        }
+        
+        // Update the detail view
+        openInventoryDetail(id);
+        
+        // Refresh all views
+        renderInventory();
+        renderDashboard();
+        renderReports();
+        updateStatusBar();
+        
+    } catch (error) {
+        console.error('Failed to update status:', error);
+        showToast('Failed to update status', 'error');
+    }
+}
+
+// ============================================
+// INVENTORY MODAL (Open/Edit)
+// ============================================
 
 function openInventoryModal(data = null) {
     const modal = document.getElementById('inventory-modal');
@@ -106,7 +296,6 @@ function openEditInventory(id) {
 // IMAGE CAPTURE FUNCTIONS (GLOBALLY ACCESSIBLE)
 // ============================================
 
-// These need to be in the global scope for onclick to work
 window.captureInventoryImage = function() {
     console.log('📸 Capture image called');
     const input = document.getElementById('inv-image-input');
@@ -116,20 +305,16 @@ window.captureInventoryImage = function() {
         return;
     }
     
-    // Check if camera is available
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // Set capture attribute for camera
         input.setAttribute('capture', 'environment');
         input.setAttribute('accept', 'image/*');
         console.log('📸 Camera mode enabled');
     } else {
-        // Fallback: use file input
         input.removeAttribute('capture');
         input.setAttribute('accept', 'image/*');
         console.log('📁 File upload mode (no camera)');
     }
     
-    // Trigger the file picker
     input.click();
 };
 
@@ -142,12 +327,9 @@ window.uploadInventoryImage = function() {
         return;
     }
     
-    // Remove capture attribute to show file picker
     input.removeAttribute('capture');
     input.setAttribute('accept', 'image/*');
     console.log('📁 File picker mode');
-    
-    // Trigger the file picker
     input.click();
 };
 
@@ -165,10 +347,6 @@ window.clearInventoryImage = function() {
     showToast('Image cleared', 'info');
 };
 
-// ============================================
-// IMAGE UPLOAD HANDLER
-// ============================================
-
 window.handleInventoryImageUpload = function(event) {
     console.log('📸 Image upload handler triggered');
     const file = event.target.files[0];
@@ -179,14 +357,12 @@ window.handleInventoryImageUpload = function(event) {
     
     console.log('📁 File selected:', file.name, file.type, file.size);
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
         showToast('❌ Please select an image file.', 'error');
         event.target.value = '';
         return;
     }
     
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
         showToast('❌ Image too large. Max 5MB.', 'error');
         event.target.value = '';
@@ -233,7 +409,6 @@ async function saveInventory() {
             return;
         }
         
-        // Validate image is required for new products
         if (!imageData && !editId) {
             showToast('📷 Please take or upload an image of the product', 'error');
             return;
@@ -250,7 +425,6 @@ async function saveInventory() {
         
         if (editId) {
             data.id = parseInt(editId);
-            // Preserve existing image if no new image was uploaded
             if (!data.imageData) {
                 const existing = AppState.inventory.find(i => i.id === parseInt(editId));
                 if (existing && existing.imageData) {
