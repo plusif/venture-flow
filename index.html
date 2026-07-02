@@ -12,7 +12,7 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/auth.css">     <!-- ✅ ADD THIS -->
     <link rel="stylesheet" href="css/timeline.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/inventory.css">
@@ -249,10 +249,13 @@
                     <option value="for_sale">For Sale</option>
                     <option value="in_production">In Production</option>
                     <option value="sold">Sold</option>
+                    <option value="lay_by">Lay-by</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="on_shelf">On Shelf</option>
                 </select>
             </div>
             
-            <!-- NEW: Image Capture Section -->
+            <!-- Image Capture Section -->
             <div class="form-group">
                 <label for="inv-image">📷 Product Image <span style="color:var(--friction);">*</span></label>
                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -399,27 +402,30 @@
 <!-- 3. Data definitions (depends on database) -->
 <script src="js/categories.js"></script>
 
-<!-- 4. CRUD operations (depend on state, database, categories) -->
+<!-- 4. AUTHENTICATION (depends on nothing, but needed before app) -->
+<script src="js/auth.js"></script>     <!-- ✅ ADD THIS -->
+
+<!-- 5. CRUD operations (depend on state, database, categories) -->
 <script src="js/events.js"></script>
 <script src="js/inventory.js"></script>
 <script src="js/debts.js"></script>
 
-<!-- 5. Renderers (depend on CRUD operations and state) -->
+<!-- 6. Renderers (depend on CRUD operations and state) -->
 <script src="js/timeline.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/reports.js"></script>
 
-<!-- 6. Specialized features (depend on state and database) -->
+<!-- 7. Specialized features (depend on state and database) -->
 <script src="js/ventures.js"></script>
 <script src="js/countdown.js"></script>
 
-<!-- 7. Export utilities (depend on state) -->
+<!-- 8. Export utilities (depend on state) -->
 <script src="js/exports.js"></script>
 
-<!-- 8. Modal placeholder -->
+<!-- 9. Modal placeholder -->
 <script src="js/modals.js"></script>
 
-<!-- 9. EMERGENT INTELLIGENCE ENGINE -->
+<!-- 10. EMERGENT INTELLIGENCE ENGINE -->
 <!-- Pattern engine: detects patterns in data -->
 <script src="js/patterns.js"></script>
 <!-- Probability engine: calculates outcome probabilities -->
@@ -433,7 +439,7 @@
 <!-- Advisor engine: synthesizes everything into advice -->
 <script src="js/advisor.js"></script>
 
-<!-- 10. MAIN APPLICATION (depends on everything above) -->
+<!-- 11. MAIN APPLICATION (depends on everything above) -->
 <script src="js/app.js"></script>
 
 </body>
