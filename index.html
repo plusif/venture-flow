@@ -197,20 +197,20 @@
             
             <!-- NEW: Image Capture Section -->
             <div class="form-group">
-                <label for="inv-image">📷 Product Image</label>
+                <label for="inv-image">📷 Product Image <span style="color:var(--friction);">*</span></label>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="captureInventoryImage()">
+                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="window.captureInventoryImage()">
                             📸 Take Photo
                         </button>
-                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="uploadInventoryImage()">
+                        <button type="button" class="submit-btn" style="flex:1;background:var(--gray-700);" onclick="window.uploadInventoryImage()">
                             📁 Upload Image
                         </button>
-                        <button type="button" class="submit-btn danger" style="flex:0.5;" onclick="clearInventoryImage()">
+                        <button type="button" class="submit-btn danger" style="flex:0.5;" onclick="window.clearInventoryImage()">
                             ✕
                         </button>
                     </div>
-                    <input type="file" id="inv-image-input" accept="image/*" style="display:none;" onchange="handleInventoryImageUpload(event)">
+                    <input type="file" id="inv-image-input" accept="image/*" style="display:none;" onchange="window.handleInventoryImageUpload(event)">
                     <div id="inv-image-preview" style="display:none;border:1px solid var(--gray-700);border-radius:8px;padding:8px;background:var(--bg-secondary);text-align:center;">
                         <img id="inv-image-display" src="" alt="Product preview" style="max-width:100%;max-height:150px;border-radius:4px;">
                         <div style="font-size:10px;color:var(--gray-500);margin-top:4px;">Image captured ✓</div>
@@ -218,7 +218,7 @@
                     <input type="hidden" id="inv-image-data" value="">
                 </div>
                 <small style="color:var(--gray-500);display:block;margin-top:4px;font-size:11px;">
-                    📷 Take a photo or upload an image of your product. Required.
+                    📷 Required: Take a photo or upload an image of your product.
                 </small>
             </div>
             

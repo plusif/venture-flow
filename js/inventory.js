@@ -1,5 +1,5 @@
 // ============================================
-// INVENTORY CRUD OPERATIONS - WITH IMAGE SUPPORT
+// INVENTORY CRUD OPERATIONS - WITH IMAGE SUPPORT (FIXED)
 // ============================================
 
 function renderInventory() {
@@ -58,6 +58,11 @@ function openInventoryModal(data = null) {
     const imageData = document.getElementById('inv-image-data');
     const imageInput = document.getElementById('inv-image-input');
     
+    // Reset the form first
+    document.getElementById('inventory-form').reset();
+    document.getElementById('inv-edit-id').value = '';
+    document.getElementById('inv-status').value = 'for_sale';
+    
     if (data) {
         editId.value = data.id;
         title.textContent = 'Edit Product';
@@ -80,7 +85,9 @@ function openInventoryModal(data = null) {
         editId.value = '';
         title.textContent = 'Add Product';
         submitBtn.textContent = 'Add Product';
-        document.getElementById('inventory-form').reset();
+        document.getElementById('inv-name').value = '';
+        document.getElementById('inv-cost').value = '';
+        document.getElementById('inv-price').value = '';
         document.getElementById('inv-status').value = 'for_sale';
         imagePreview.style.display = 'none';
         imageData.value = '';
@@ -96,37 +103,81 @@ function openEditInventory(id) {
 }
 
 // ============================================
-// IMAGE CAPTURE FUNCTIONS
+// IMAGE CAPTURE FUNCTIONS (GLOBALLY ACCESSIBLE)
 // ============================================
 
-function captureInventoryImage() {
+// These need to be in the global scope for onclick to work
+window.captureInventoryImage = function() {
+    console.log('📸 Capture image called');
     const input = document.getElementById('inv-image-input');
-    if (!input) return;
+    if (!input) {
+        console.error('❌ Image input not found');
+        showToast('Error: Image input not found', 'error');
+        return;
+    }
     
     // Check if camera is available
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // Use camera directly
-        input.capture = 'environment';
-        input.accept = 'image/*';
-        input.click();
+        // Set capture attribute for camera
+        input.setAttribute('capture', 'environment');
+        input.setAttribute('accept', 'image/*');
+        console.log('📸 Camera mode enabled');
     } else {
         // Fallback: use file input
-        input.accept = 'image/*';
-        input.click();
+        input.removeAttribute('capture');
+        input.setAttribute('accept', 'image/*');
+        console.log('📁 File upload mode (no camera)');
     }
-}
+    
+    // Trigger the file picker
+    input.click();
+};
 
-function uploadInventoryImage() {
+window.uploadInventoryImage = function() {
+    console.log('📁 Upload image called');
     const input = document.getElementById('inv-image-input');
-    if (input) {
-        input.accept = 'image/*';
-        input.click();
+    if (!input) {
+        console.error('❌ Image input not found');
+        showToast('Error: Image input not found', 'error');
+        return;
     }
-}
+    
+    // Remove capture attribute to show file picker
+    input.removeAttribute('capture');
+    input.setAttribute('accept', 'image/*');
+    console.log('📁 File picker mode');
+    
+    // Trigger the file picker
+    input.click();
+};
 
-function handleInventoryImageUpload(event) {
+window.clearInventoryImage = function() {
+    console.log('🗑️ Clear image called');
+    const preview = document.getElementById('inv-image-preview');
+    const display = document.getElementById('inv-image-display');
+    const dataInput = document.getElementById('inv-image-data');
+    const fileInput = document.getElementById('inv-image-input');
+    
+    if (preview) preview.style.display = 'none';
+    if (display) display.src = '';
+    if (dataInput) dataInput.value = '';
+    if (fileInput) fileInput.value = '';
+    showToast('Image cleared', 'info');
+};
+
+// ============================================
+// IMAGE UPLOAD HANDLER
+// ============================================
+
+window.handleInventoryImageUpload = function(event) {
+    console.log('📸 Image upload handler triggered');
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    
+    console.log('📁 File selected:', file.name, file.type, file.size);
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -144,34 +195,23 @@ function handleInventoryImageUpload(event) {
     
     const reader = new FileReader();
     reader.onload = function(e) {
+        console.log('✅ Image read successfully');
         const imageData = e.target.result;
         const preview = document.getElementById('inv-image-preview');
         const display = document.getElementById('inv-image-display');
         const dataInput = document.getElementById('inv-image-data');
         
-        display.src = imageData;
-        preview.style.display = 'block';
-        dataInput.value = imageData;
+        if (display) display.src = imageData;
+        if (preview) preview.style.display = 'block';
+        if (dataInput) dataInput.value = imageData;
         showToast('✅ Image captured successfully!', 'success');
     };
     reader.onerror = function() {
+        console.error('❌ Failed to read image');
         showToast('❌ Failed to read image.', 'error');
     };
     reader.readAsDataURL(file);
-}
-
-function clearInventoryImage() {
-    const preview = document.getElementById('inv-image-preview');
-    const display = document.getElementById('inv-image-display');
-    const dataInput = document.getElementById('inv-image-data');
-    const fileInput = document.getElementById('inv-image-input');
-    
-    preview.style.display = 'none';
-    display.src = '';
-    dataInput.value = '';
-    fileInput.value = '';
-    showToast('Image cleared', 'info');
-}
+};
 
 // ============================================
 // SAVE INVENTORY
@@ -186,12 +226,14 @@ async function saveInventory() {
         const status = document.getElementById('inv-status').value;
         const imageData = document.getElementById('inv-image-data').value;
         
+        console.log('📦 Saving inventory:', { name, cost, price, status, hasImage: !!imageData, editId });
+        
         if (!name) {
             showToast('Please enter a product name', 'error');
             return;
         }
         
-        // Validate image is required
+        // Validate image is required for new products
         if (!imageData && !editId) {
             showToast('📷 Please take or upload an image of the product', 'error');
             return;
