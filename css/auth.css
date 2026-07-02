@@ -2,37 +2,30 @@
    AUTHENTICATION STYLES
    ============================================ */
 
-/* Auth Overlay - Full screen overlay */
+/* Auth Overlay - Full screen overlay that covers EVERYTHING */
 #auth-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background: var(--bg-primary);
-    z-index: 999999;
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    overflow-y: auto;
     box-sizing: border-box;
 }
 
-/* When hidden, completely hide */
-#auth-overlay[style*="display: none"],
-#auth-overlay[style*="display:none"] {
+/* When hidden, remove from view completely */
+#auth-overlay[style*="display: none"] {
     display: none !important;
 }
 
-/* When visible, ensure it covers everything */
-#auth-overlay:not([style*="display: none"]):not([style*="display:none"]) {
+/* When visible, ensure it's on top */
+#auth-overlay:not([style*="display: none"]) {
     display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: all !important;
 }
 
 .auth-box {
@@ -42,10 +35,9 @@
     border-radius: 12px;
     padding: 32px 24px;
     border: 1px solid var(--gray-700);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
     position: relative;
-    z-index: 1000000;
-    margin: auto;
+    z-index: 100000;
 }
 
 .auth-logo {
@@ -223,17 +215,6 @@
     background: rgba(231, 76, 60, 0.1);
 }
 
-/* Ensure app is hidden behind overlay */
-#app {
-    display: block;
-}
-
-/* When auth overlay is visible, app should be behind it */
-#auth-overlay:not([style*="display: none"]):not([style*="display:none"]) ~ #app {
-    filter: blur(0px);
-    pointer-events: none;
-}
-
 /* Responsive */
 @media (max-width: 480px) {
     #auth-overlay {
@@ -244,7 +225,6 @@
     .auth-box {
         padding: 24px 16px;
         margin: 10px;
-        max-width: 100%;
     }
     
     .auth-logo h1 {
