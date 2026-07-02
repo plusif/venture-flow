@@ -2,24 +2,40 @@
    AUTHENTICATION STYLES
    ============================================ */
 
-.auth-container {
+/* Auth Overlay - Full screen overlay */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-primary);
+    z-index: 99999;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
     padding: 20px;
-    background: var(--bg-primary);
+    overflow-y: auto;
+}
+
+/* When hidden, don't show */
+.auth-overlay[style*="display: none"],
+.auth-overlay[style*="display:none"] {
+    pointer-events: none;
 }
 
 .auth-box {
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     background: var(--bg-secondary);
     border-radius: 12px;
     padding: 32px 24px;
     border: 1px solid var(--gray-700);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 100000;
 }
 
 .auth-logo {
@@ -166,21 +182,6 @@
     color: #27ae60;
 }
 
-/* Auth overlay (when showing login in app) */
-.auth-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--bg-primary);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
 /* User info in header */
 .user-info {
     display: flex;
@@ -216,9 +217,15 @@
 @media (max-width: 480px) {
     .auth-box {
         padding: 24px 16px;
+        margin: 10px;
     }
     
     .auth-logo h1 {
         font-size: 24px;
+    }
+    
+    .auth-overlay {
+        padding: 10px;
+        align-items: center;
     }
 }
