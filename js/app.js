@@ -451,6 +451,163 @@ function handleLogout() {
     }
 }
 
+// ============================================
+// USER DROPDOWN FUNCTIONS
+// ============================================
+
+let isUserMenuOpen = false;
+
+function toggleUserMenu() {
+    const dropdown = document.getElementById('user-dropdown');
+    const arrow = document.querySelector('.user-dropdown-arrow');
+    isUserMenuOpen = !isUserMenuOpen;
+    
+    if (dropdown) {
+        dropdown.style.display = isUserMenuOpen ? 'block' : 'none';
+    }
+    if (arrow) {
+        arrow.classList.toggle('open', isUserMenuOpen);
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const userInfo = document.getElementById('user-info');
+    const dropdown = document.getElementById('user-dropdown');
+    if (userInfo && dropdown && !userInfo.contains(event.target)) {
+        dropdown.style.display = 'none';
+        const arrow = document.querySelector('.user-dropdown-arrow');
+        if (arrow) arrow.classList.remove('open');
+        isUserMenuOpen = false;
+    }
+});
+
+function handleChangePassword() {
+    // Close dropdown
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    isUserMenuOpen = false;
+    const arrow = document.querySelector('.user-dropdown-arrow');
+    if (arrow) arrow.classList.remove('open');
+    
+    // Open password modal
+    const modal = document.getElementById('password-modal');
+    if (modal) {
+        document.getElementById('password-form').reset();
+        document.getElementById('password-error').textContent = '';
+        modal.classList.add('visible');
+    }
+}
+
+async function handleChangePasswordSubmit(event) {
+    event.preventDefault();
+    
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const errorEl = document.getElementById('password-error');
+    
+    errorEl.textContent = '';
+    
+    // Validate
+    if (newPassword.length < 6) {
+        errorEl.textContent = '❌ New password must be at least 6 characters';
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        errorEl.textContent = '❌ Passwords do not match';
+        return;
+    }
+    
+    // Get current user
+    const user = Auth.currentUser;
+    if (!user) {
+        errorEl.textContent = '❌ Not logged in';
+        return;
+    }
+    
+    // Verify current password
+    if (user.password !== Auth.hashPassword(currentPassword)) {
+        errorEl.textContent = '❌ Current password is incorrect';
+        return;
+    }
+    
+    // Update password
+    try {
+        const users = Auth.getAllUsers();
+        const userIndex = users.findIndex(u => u.email === user.email);
+        
+        if (userIndex === -1) {
+            errorEl.textContent = '❌ User not found';
+            return;
+        }
+        
+        // Update password
+        users[userIndex].password = Auth.hashPassword(newPassword);
+        Auth.saveUsers(users);
+        
+        // Update session
+        const updatedUser = { ...user, password: Auth.hashPassword(newPassword) };
+        Auth.currentUser = updatedUser;
+        Auth.saveSession(updatedUser);
+        
+        // Close modal
+        document.getElementById('password-modal').classList.remove('visible');
+        document.getElementById('password-form').reset();
+        
+        showToast('✅ Password updated successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error updating password:', error);
+        errorEl.textContent = '❌ Failed to update password';
+    }
+}
+
+// Update user info with dropdown
+function updateUserInfo() {
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name-display');
+    const userAvatar = document.getElementById('user-avatar-display');
+    const dropdownAvatar = document.getElementById('dropdown-avatar');
+    const dropdownName = document.getElementById('dropdown-name');
+    const dropdownEmail = document.getElementById('dropdown-email');
+    
+    if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+        userInfo.style.display = 'flex';
+        const initials = getInitials(Auth.currentUser.name);
+        const fullName = Auth.currentUser.name;
+        const email = Auth.currentUser.email;
+        
+        // Update avatar
+        if (userAvatar) {
+            userAvatar.textContent = initials;
+            userAvatar.title = fullName;
+        }
+        
+        // Update dropdown avatar
+        if (dropdownAvatar) {
+            dropdownAvatar.textContent = initials;
+        }
+        
+        // Update name
+        if (userName) {
+            userName.textContent = fullName;
+            userName.title = fullName;
+        }
+        
+        // Update dropdown info
+        if (dropdownName) {
+            dropdownName.textContent = fullName;
+        }
+        if (dropdownEmail) {
+            dropdownEmail.textContent = email;
+        }
+    } else {
+        userInfo.style.display = 'none';
+    }
+}
+
 // Make auth functions globally accessible
 window.switchAuthTab = switchAuthTab;
 window.handleLogin = handleLogin;
