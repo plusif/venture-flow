@@ -341,31 +341,6 @@ function showAuthOverlay(show) {
     }
 }
 
-function updateUserInfo() {
-    const userInfo = document.getElementById('user-info');
-    const userName = document.getElementById('user-name-display');
-    const userAvatar = document.getElementById('user-avatar-display');
-    
-    if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
-        userInfo.style.display = 'flex';
-        const initials = getInitials(Auth.currentUser.name);
-        const fullName = Auth.currentUser.name;
-        
-        // Update avatar with initials
-        if (userAvatar) {
-            userAvatar.textContent = initials;
-            userAvatar.title = fullName;
-        }
-        
-        // Update full name (shown next to avatar or hidden)
-        if (userName) {
-            userName.textContent = fullName;
-            userName.title = fullName;
-        }
-    } else {
-        userInfo.style.display = 'none';
-    }
-}
 
 function switchAuthTab(tab) {
     const loginForm = document.getElementById('login-form');
