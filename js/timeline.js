@@ -1,7 +1,3 @@
-// ============================================
-// TIMELINE RENDERER - FIXED
-// ============================================
-
 function renderTimeline() {
     const container = document.getElementById('timeline-container');
     
@@ -16,11 +12,21 @@ function renderTimeline() {
         return;
     }
     
-    // Get date range: from origin to today
+    // ============================================
+    // FIX: Get today's date properly with timezone
+    // ============================================
+    const now = new Date();
+    // Get local date components to avoid timezone issues
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = year + '-' + month + '-' + day;
+    
+    // Also create a Date object for comparison
+    const today = new Date(todayStr + 'T00:00:00');
+    
+    // Get origin date
     const originDate = new Date(venture.originDate + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
     
     // If origin is in the future, show a message
     if (originDate > today) {
@@ -70,7 +76,31 @@ function renderTimeline() {
         return;
     }
     
-    let html = '<div class="timeline">';
+    // ============================================
+    // BUILD TIMELINE HTML WITH NAVIGATION
+    // ============================================
+    
+    let html = `
+        <!-- Timeline Navigation -->
+        <div class="timeline-nav">
+            <div class="timeline-nav-left">
+                <button class="timeline-nav-btn" onclick="scrollToToday()" title="Jump to Today">
+                    📍 Today
+                </button>
+                <button class="timeline-nav-btn" onclick="scrollToOrigin()" title="Jump to Origin">
+                    🏁 Origin
+                </button>
+            </div>
+            <div class="timeline-nav-right">
+                <input type="date" id="timeline-date-jump" class="timeline-date-jump" 
+                       min="${venture.originDate}" max="${todayStr}" 
+                       onchange="jumpToDate(this.value)">
+                <label for="timeline-date-jump" class="timeline-jump-label">Jump to</label>
+            </div>
+        </div>
+    `;
+    
+    html += '<div class="timeline" id="timeline-scroll-container">';
     
     allDates.forEach((date) => {
         const events = grouped[date] || [];
@@ -80,7 +110,7 @@ function renderTimeline() {
         const isEmpty = events.length === 0;
         
         // Add a data attribute for easy targeting
-        html += `<div class="day-block ${isToday ? 'today' : ''} ${isEmpty ? 'empty-day' : ''}" data-date="${date}">`;
+        html += `<div class="day-block ${isToday ? 'today' : ''} ${isEmpty ? 'empty-day' : ''}" data-date="${date}" id="day-${date}">`;
         html += `<div class="day-header">`;
         
         // Date with today indicator
@@ -149,9 +179,10 @@ function renderTimeline() {
     });
     
     html += '</div>';
-    container.innerHTML = html;
     
-    // If no events at all, show a more helpful message
+    // ============================================
+    // Check for events BEFORE setting innerHTML
+    // ============================================
     if (validEvents.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -162,7 +193,20 @@ function renderTimeline() {
                 <button class="add-btn" onclick="document.getElementById('add-event-btn')?.click()" style="margin-top:10px;">＋ Add First Event</button>
             </div>
         `;
+        return;
     }
+    
+    // Set the HTML content
+    container.innerHTML = html;
+    
+    // ============================================
+    // AUTO-SCROLL TO TODAY
+    // ============================================
+    setTimeout(() => {
+        if (typeof scrollToToday === 'function') {
+            scrollToToday();
+        }
+    }, 200);
 }
 
 function createEventCardHTML(event, type) {
@@ -183,3 +227,114 @@ function createEventCardHTML(event, type) {
         </div>
     `;
 }
+
+// ============================================
+// TIMELINE NAVIGATION FUNCTIONS
+// ============================================
+
+/**
+ * Scroll to today's entry in the timeline
+ */
+function scrollToToday() {
+    // ============================================
+    // FIX: Use same timezone-safe method for today
+    // ============================================
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = year + '-' + month + '-' + day;
+    
+    const todayElement = document.getElementById('day-' + todayStr);
+    const container = document.getElementById('timeline-scroll-container');
+    
+    if (todayElement && container) {
+        // Get the main content container for scrolling
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            // Calculate position of today element relative to the timeline container
+            const containerRect = container.getBoundingClientRect();
+            const todayRect = todayElement.getBoundingClientRect();
+            const scrollOffset = todayRect.top - containerRect.top + container.scrollTop - 20;
+            
+            // Smooth scroll to today
+            mainContent.scrollTo({
+                top: scrollOffset,
+                behavior: 'smooth'
+            });
+        }
+    } else {
+        // If today element not found, scroll to bottom
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.scrollTo({
+                top: mainContent.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }
+}
+
+/**
+ * Scroll to the origin date
+ */
+function scrollToOrigin() {
+    const venture = AppState.currentVenture;
+    if (!venture) return;
+    
+    const originElement = document.getElementById('day-' + venture.originDate);
+    const container = document.getElementById('timeline-scroll-container');
+    
+    if (originElement && container) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            const containerRect = container.getBoundingClientRect();
+            const originRect = originElement.getBoundingClientRect();
+            const scrollOffset = originRect.top - containerRect.top + container.scrollTop - 20;
+            
+            mainContent.scrollTo({
+                top: scrollOffset,
+                behavior: 'smooth'
+            });
+        }
+    }
+}
+
+/**
+ * Jump to a specific date
+ * @param {string} dateStr - Date in YYYY-MM-DD format
+ */
+function jumpToDate(dateStr) {
+    if (!dateStr) return;
+    
+    const targetElement = document.getElementById('day-' + dateStr);
+    const container = document.getElementById('timeline-scroll-container');
+    
+    if (targetElement && container) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            const containerRect = container.getBoundingClientRect();
+            const targetRect = targetElement.getBoundingClientRect();
+            const scrollOffset = targetRect.top - containerRect.top + container.scrollTop - 20;
+            
+            mainContent.scrollTo({
+                top: scrollOffset,
+                behavior: 'smooth'
+            });
+            
+            // Highlight the target briefly
+            targetElement.style.transition = 'background 0.3s';
+            targetElement.style.background = 'rgba(46, 204, 113, 0.1)';
+            setTimeout(() => {
+                targetElement.style.background = '';
+            }, 1500);
+        }
+    } else {
+        showToast('No entries found for this date', 'warning');
+    }
+}
+
+// Make navigation functions globally accessible
+window.scrollToToday = scrollToToday;
+window.scrollToOrigin = scrollToOrigin;
+window.jumpToDate = jumpToDate;
