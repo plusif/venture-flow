@@ -239,7 +239,7 @@ async function saveEvent() {
         };
         
         // ============================================
-        // NEW: Add user ID if auth is enabled
+        // Add user ID if auth is enabled
         // ============================================
         if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
             eventData.userId = Auth.getUserFilter();
@@ -278,7 +278,20 @@ async function saveEvent() {
         
         document.getElementById('event-modal').classList.remove('visible');
         
-        renderTimeline();
+        // ============================================
+        // FIX: Force timeline re-render with delay
+        // ============================================
+        // The delay ensures the DOM is ready before rendering
+        setTimeout(() => {
+            renderTimeline();
+            // Scroll to today after re-render
+            setTimeout(() => {
+                if (typeof scrollToToday === 'function') {
+                    scrollToToday();
+                }
+            }, 50);
+        }, 50);
+        
         renderDashboard();
         renderReports();
         updateStatusBar();
@@ -298,7 +311,14 @@ async function deleteEvent(id) {
             console.warn('DB delete failed, removing from memory only:', e);
         }
         AppState.events = AppState.events.filter(e => e.id !== id);
-        renderTimeline();
+        
+        // ============================================
+        // FIX: Force timeline re-render with delay
+        // ============================================
+        setTimeout(() => {
+            renderTimeline();
+        }, 50);
+        
         renderDashboard();
         renderReports();
         updateStatusBar();
