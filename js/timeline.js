@@ -1,3 +1,7 @@
+// ============================================
+// TIMELINE RENDERER - FIXED (Timezone Issue)
+// ============================================
+
 function renderTimeline() {
     const container = document.getElementById('timeline-container');
     
@@ -16,13 +20,10 @@ function renderTimeline() {
     // FIX: Get today's date properly with timezone
     // ============================================
     const now = new Date();
-    // Get local date components to avoid timezone issues
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const todayStr = year + '-' + month + '-' + day;
-    
-    // Also create a Date object for comparison
     const today = new Date(todayStr + 'T00:00:00');
     
     // Get origin date
@@ -56,11 +57,17 @@ function renderTimeline() {
         grouped[event.date].push(event);
     });
     
-    // Generate all dates from origin to today
+    // ============================================
+    // FIX: Generate all dates using timezone-safe method
+    // ============================================
     const allDates = [];
     const currentDate = new Date(originDate);
     while (currentDate <= today) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        // Use local date components instead of toISOString()
+        const y = currentDate.getFullYear();
+        const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const d = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = y + '-' + m + '-' + d;
         allDates.push(dateStr);
         currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -236,9 +243,7 @@ function createEventCardHTML(event, type) {
  * Scroll to today's entry in the timeline
  */
 function scrollToToday() {
-    // ============================================
-    // FIX: Use same timezone-safe method for today
-    // ============================================
+    // Use timezone-safe method for today
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -249,22 +254,18 @@ function scrollToToday() {
     const container = document.getElementById('timeline-scroll-container');
     
     if (todayElement && container) {
-        // Get the main content container for scrolling
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
-            // Calculate position of today element relative to the timeline container
             const containerRect = container.getBoundingClientRect();
             const todayRect = todayElement.getBoundingClientRect();
             const scrollOffset = todayRect.top - containerRect.top + container.scrollTop - 20;
             
-            // Smooth scroll to today
             mainContent.scrollTo({
                 top: scrollOffset,
                 behavior: 'smooth'
             });
         }
     } else {
-        // If today element not found, scroll to bottom
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.scrollTo({
