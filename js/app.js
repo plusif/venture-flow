@@ -6,11 +6,11 @@ async function initApp() {
     try {
         console.log('🚀 Initializing Venture Flow...');
         
-        // ADD THIS: Wait a tiny bit for DOM to be fully ready
+        // Wait a tiny bit for DOM to be fully ready
         await new Promise(resolve => setTimeout(resolve, 50));
         
         // ============================================
-        // NEW: CHECK AUTHENTICATION FIRST
+        // CHECK AUTHENTICATION FIRST
         // ============================================
         if (typeof Auth !== 'undefined') {
             const loggedIn = Auth.init();
@@ -25,15 +25,18 @@ async function initApp() {
             }
         } else {
             console.warn('⚠️ Auth module not available');
-            // Continue without auth (development mode)
         }
         
         // 1. Open Database
         let dbOpen = false;
         try {
-            await window.db.open();
-            dbOpen = true;
-            console.log('✅ Database opened successfully');
+            if (window.db && typeof window.db.open === 'function') {
+                await window.db.open();
+                dbOpen = true;
+                console.log('✅ Database opened successfully');
+            } else {
+                console.warn('⚠️ Database module not available');
+            }
         } catch (dbError) {
             console.warn('⚠️ Database error, using in-memory fallback:', dbError);
             dbOpen = false;
@@ -42,110 +45,81 @@ async function initApp() {
         // 2. Check for existing ventures (filtered by user)
         if (dbOpen) {
             try {
-                const existingVentures = await window.db.getAll('venture');
+                const existingVentures = await window.db.getAll('venture') || [];
                 // Filter by user ID if auth is enabled
                 let filteredVentures = existingVentures;
                 if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
                     const userId = Auth.getUserFilter();
                     filteredVentures = existingVentures.filter(v => v.userId === userId);
                 }
-                if (!filteredVentures || filteredVentures.length === 0) {
-                    console.log('📦 No ventures found. User needs to create first venture.');
-                } else {
-                    console.log(`📦 Found ${filteredVentures.length} ventures in database`);
-                }
+                AppState.ventures = filteredVentures;
+                console.log(`📦 Found ${AppState.ventures.length} ventures in database`);
             } catch (e) {
                 console.warn('⚠️ Error checking ventures:', e);
+                AppState.ventures = [];
             }
-        }
-        
-        // 3. Load Ventures from database (filtered by user)
-        try {
-            if (dbOpen) {
-                const allVentures = await window.db.getAll('venture');
-                // Filter by user ID if auth is enabled
-                if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
-                    const userId = Auth.getUserFilter();
-                    AppState.ventures = allVentures.filter(v => v.userId === userId);
-                } else {
-                    AppState.ventures = allVentures;
-                }
-                console.log(`✅ Loaded ${AppState.ventures.length} ventures from DB`);
-            }
-        } catch (e) {
-            console.warn('⚠️ Could not load ventures from DB:', e);
-        }
-        
-        // 4. If no ventures, create EMPTY state (NO DEFAULT DATA)
-        if (!AppState.ventures || AppState.ventures.length === 0) {
-            console.log('📦 No ventures found. Starting with empty state.');
+        } else {
             AppState.ventures = [];
-            AppState.events = [];
-            AppState.inventory = [];
-            AppState.debts = [];
-            // NO DEFAULT DATA - user must create a venture
         }
         
-        // 5. Set Current Venture
+        // 3. Set Current Venture
         const activeVenture = AppState.ventures.find(v => v.active);
         AppState.currentVentureId = activeVenture ? activeVenture.id : 
             (AppState.ventures.length > 0 ? AppState.ventures[0].id : null);
         
         console.log(`📍 Current venture: ${AppState.currentVentureId}`);
         
-        // 6. Load Countdown
+        // 4. Load Countdown
         try {
-            if (dbOpen) {
-                const countdownData = await window.db.getAll('countdown');
+            if (dbOpen && window.db) {
+                const countdownData = await window.db.getAll('countdown') || [];
                 AppState.countdown = countdownData.length > 0 ? countdownData[0] : null;
             }
         } catch (e) {
             AppState.countdown = null;
         }
         
-        // 7. Load Venture Data - CRITICAL: Only load data for the current venture
+        // 5. Load Venture Data - CRITICAL: Only load data for the current venture
         if (AppState.currentVentureId) {
             // Clear any existing data first
             AppState.clearVentureData();
             
-            if (dbOpen) {
+            if (dbOpen && window.db) {
                 await loadVentureDataFromDB(AppState.currentVentureId);
             } else {
-                // Use in-memory data filtered by venture
-                const filteredEvents = AppState.events.filter(e => e.ventureId === AppState.currentVentureId);
-                const filteredInventory = AppState.inventory.filter(i => i.ventureId === AppState.currentVentureId);
-                const filteredDebts = AppState.debts.filter(d => d.ventureId === AppState.currentVentureId);
-                
-                AppState.events = filteredEvents;
-                AppState.inventory = filteredInventory;
-                AppState.debts = filteredDebts;
-                AppState.events.sort((a, b) => new Date(a.date) - new Date(b.date));
-                console.log(`📦 Using memory data: ${AppState.events.length} events`);
+                // Use in-memory data
+                AppState.events = [];
+                AppState.inventory = [];
+                AppState.debts = [];
+                console.log('📦 Using memory data (empty)');
             }
+        } else {
+            // No venture selected, empty state
+            AppState.events = [];
+            AppState.inventory = [];
+            AppState.debts = [];
         }
         
         AppState.initialized = true;
         
-        // 8. Render Everything
+        // 6. Render Everything
         renderAll();
         
-        // 9. Setup Event Listeners
+        // 7. Setup Event Listeners
         setupEventListeners();
         
-        // 10. Start Countdown Timer
+        // 8. Start Countdown Timer
         if (AppState.countdown) {
             startCountdownTimer();
         }
         
-        // 11. Initialize Advisor (with auto-refresh)
+        // 9. Initialize Advisor
         if (typeof Advisor !== 'undefined' && Advisor.init) {
             Advisor.init();
             console.log('🧠 Advisor initialized with auto-refresh');
-        } else {
-            console.warn('⚠️ Advisor not available');
         }
         
-        // 12. Update Advisor Badge
+        // 10. Update Advisor Badge
         updateAdvisorBadge();
         
         console.log('✅ Venture Flow initialized successfully!');
@@ -188,35 +162,26 @@ async function loadVentureDataFromDB(ventureId) {
     AppState.clearVentureData();
     
     try {
-        // Try loading from database using indexes
-        const events = await window.db.getByIndex('events', 'ventureId', ventureId);
-        const inventory = await window.db.getByIndex('inventory', 'ventureId', ventureId);
-        const debts = await window.db.getByIndex('debts', 'ventureId', ventureId);
+        // Get all data and filter by ventureId
+        const allEvents = await window.db.getAll('events') || [];
+        const allInventory = await window.db.getAll('inventory') || [];
+        const allDebts = await window.db.getAll('debts') || [];
         
-        if (events && events.length > 0) {
-            AppState.events = events;
-            AppState.inventory = inventory || [];
-            AppState.debts = debts || [];
-            console.log(`✅ Loaded ${events.length} events from DB`);
-        } else {
-            // Fallback: get all and filter
-            const allEvents = await window.db.getAll('events');
-            const allInventory = await window.db.getAll('inventory');
-            const allDebts = await window.db.getAll('debts');
-            
-            AppState.events = allEvents.filter(e => e.ventureId === ventureId);
-            AppState.inventory = allInventory.filter(i => i.ventureId === ventureId);
-            AppState.debts = allDebts.filter(d => d.ventureId === ventureId);
-            console.log(`✅ Loaded ${AppState.events.length} events (filtered)`);
-        }
+        // Filter by ventureId
+        AppState.events = allEvents.filter(e => e.ventureId === ventureId);
+        AppState.inventory = allInventory.filter(i => i.ventureId === ventureId);
+        AppState.debts = allDebts.filter(d => d.ventureId === ventureId);
+        
+        // Sort events by date
+        AppState.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        console.log(`✅ Loaded ${AppState.events.length} events, ${AppState.inventory.length} products, ${AppState.debts.length} debts from DB`);
     } catch (e) {
         console.warn('⚠️ Error loading venture data:', e);
         AppState.events = [];
         AppState.inventory = [];
         AppState.debts = [];
     }
-    
-    AppState.events.sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
 function renderAll() {
@@ -242,7 +207,7 @@ async function switchVenture(id) {
         // Update active status
         for (const v of AppState.ventures) {
             v.active = v.id === id;
-            if (window.db.isReady()) {
+            if (window.db && window.db.isReady && window.db.isReady()) {
                 try {
                     await window.db.put('venture', v);
                 } catch (e) {
@@ -258,7 +223,7 @@ async function switchVenture(id) {
         AppState.clearVentureData();
         
         // Load data for the new venture
-        if (window.db.isReady()) {
+        if (window.db && window.db.isReady && window.db.isReady()) {
             await loadVentureDataFromDB(id);
         } else {
             // Fallback: filter memory data
@@ -328,19 +293,16 @@ function showAuthOverlay(show) {
             overlay.style.visibility = 'visible';
             overlay.style.opacity = '1';
             overlay.style.pointerEvents = 'all';
-            // Prevent scrolling behind overlay
             document.body.style.overflow = 'hidden';
         } else {
             overlay.style.display = 'none';
             overlay.style.visibility = 'hidden';
             overlay.style.opacity = '0';
             overlay.style.pointerEvents = 'none';
-            // Restore scrolling
             document.body.style.overflow = '';
         }
     }
 }
-
 
 function switchAuthTab(tab) {
     const loginForm = document.getElementById('login-form');
@@ -426,14 +388,8 @@ function handleForgotPassword(event) {
     const tempPassword = Math.random().toString(36).slice(-8) + 
                         Math.random().toString(36).slice(-8);
     
-    // Hash the new password (using same method as auth.js)
-    let hash = 0;
-    for (let i = 0; i < tempPassword.length; i++) {
-        const char = tempPassword.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    const hashedPassword = 'hashed_' + hash + '_' + tempPassword.length;
+    // Hash the new password
+    const hashedPassword = Auth.hashPassword(tempPassword);
     
     // Update password
     const userIndex = users.findIndex(u => u.email === email);
@@ -460,7 +416,6 @@ function handleForgotPassword(event) {
 // Expose globally
 window.showForgotPassword = showForgotPassword;
 window.handleForgotPassword = handleForgotPassword;
-
 
 function handleRegister(event) {
     event.preventDefault();
@@ -498,7 +453,6 @@ function handleLogout() {
         showToast('Logged out successfully', 'info');
     }
 }
-
 
 // ============================================
 // USER DROPDOWN FUNCTIONS
@@ -662,6 +616,10 @@ window.switchAuthTab = switchAuthTab;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.handleLogout = handleLogout;
+window.updateUserInfo = updateUserInfo;
+window.toggleUserMenu = toggleUserMenu;
+window.handleChangePassword = handleChangePassword;
+window.handleChangePasswordSubmit = handleChangePasswordSubmit;
 
 // ============================================
 // ADVISOR BADGE
@@ -952,7 +910,6 @@ function setupEventListeners() {
             }, 100);
         });
     }
-    
 }
 
 // ============================================
