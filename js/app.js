@@ -389,6 +389,79 @@ function handleLogin(event) {
     }
 }
 
+// ============================================
+// FORGOT PASSWORD FUNCTIONS
+// ============================================
+
+function showForgotPassword() {
+    const modal = document.getElementById('forgot-password-modal');
+    if (modal) {
+        document.getElementById('reset-email').value = '';
+        document.getElementById('reset-error').textContent = '';
+        document.getElementById('reset-success').style.display = 'none';
+        modal.classList.add('visible');
+    }
+}
+
+function handleForgotPassword(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('reset-email').value.trim();
+    const errorEl = document.getElementById('reset-error');
+    const successEl = document.getElementById('reset-success');
+    
+    errorEl.textContent = '';
+    successEl.style.display = 'none';
+    
+    // Find user
+    const users = Auth.getAllUsers();
+    const user = users.find(u => u.email === email);
+    
+    if (!user) {
+        errorEl.textContent = '❌ No account found with this email';
+        return;
+    }
+    
+    // Generate a random temporary password
+    const tempPassword = Math.random().toString(36).slice(-8) + 
+                        Math.random().toString(36).slice(-8);
+    
+    // Hash the new password (using same method as auth.js)
+    let hash = 0;
+    for (let i = 0; i < tempPassword.length; i++) {
+        const char = tempPassword.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    const hashedPassword = 'hashed_' + hash + '_' + tempPassword.length;
+    
+    // Update password
+    const userIndex = users.findIndex(u => u.email === email);
+    users[userIndex].password = hashedPassword;
+    Auth.saveUsers(users);
+    
+    // Show the new password to the user
+    successEl.style.display = 'block';
+    successEl.innerHTML = `
+        ✅ Password reset successfully!<br>
+        <span style="font-size:16px;font-weight:600;color:var(--support);">🔑 ${tempPassword}</span><br>
+        <span style="font-size:11px;color:var(--gray-500);">
+            Please copy this password and use it to login.
+            <br>You can change it later in your profile settings.
+        </span>
+    `;
+    
+    // Auto-close after 30 seconds
+    setTimeout(() => {
+        document.getElementById('forgot-password-modal').classList.remove('visible');
+    }, 30000);
+}
+
+// Expose globally
+window.showForgotPassword = showForgotPassword;
+window.handleForgotPassword = handleForgotPassword;
+
+
 function handleRegister(event) {
     event.preventDefault();
     const name = document.getElementById('register-name').value.trim();
@@ -425,6 +498,7 @@ function handleLogout() {
         showToast('Logged out successfully', 'info');
     }
 }
+
 
 // ============================================
 // USER DROPDOWN FUNCTIONS
